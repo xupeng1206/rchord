@@ -320,7 +320,6 @@ if __name__ == "__main__":
     pprint(TheoryUtil.x_9("C"))
     pprint(TheoryUtil.x_7("C", color=["b9"]))
 
-
     # scales
     pprint(TheoryUtil.s_maj_nature("C"))
     pprint(TheoryUtil.s_maj_harmonic("C"))
