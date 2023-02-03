@@ -1,8 +1,31 @@
 class TheoryUtil:
     note_names = "CDEFGAB" * 3
-    note_lst = ["C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"] * 3
+    note_lst = ["C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"]
+    note_lst_x3 = note_lst * 3
+
     simple_note_lst = ["1", "b2/#1", "2", "b3/#2", "3", "4", "b5/#4", "5", "b6/#5", "6", "b7/#6", "7"] + \
                       ["-", "b9", "9", "#9", "-", "11", "#11", "-", "b13", "13", "-", "-"]
+
+    @classmethod
+    def chord_in_scale(cls, chord, scale):
+        return all([bool(x in scale[1]) for x in chord[1]])
+
+    @classmethod
+    def find_scales_by_chord(cls, chord):
+        scales = []
+        for notes in cls.note_lst:
+            for note in notes.split("/"):
+                for attr in dir(cls):
+                    if not attr.startswith("s_"):
+                        continue
+                    tmp_scale = getattr(cls, attr)(note)
+                    if cls.chord_in_scale(chord, tmp_scale):
+                        scales.append({
+                            "root": note,
+                            "scale": attr,
+                            "notes": tmp_scale,
+                        })
+        return scales
 
     @classmethod
     def note_index(cls, lst, target):
@@ -12,13 +35,13 @@ class TheoryUtil:
 
     @classmethod
     def parse(cls, root, pattern):
-        root_start = cls.note_index(cls.note_lst, root)
+        root_start = cls.note_index(cls.note_lst_x3, root)
         root_name = root.strip("#b")
         root_name_start = cls.note_names.index(root_name)
         ret_multi_notes = []
         ret_single_notes = []
         for s_note in pattern.split(","):
-            note = cls.note_lst[root_start+cls.note_index(cls.simple_note_lst, s_note)]
+            note = cls.note_lst_x3[root_start+cls.note_index(cls.simple_note_lst, s_note)]
             ret_multi_notes.append(note)
             name = cls.note_names[root_name_start + int(s_note.strip("#b"))-1]
             ret_note = note
@@ -231,7 +254,7 @@ class TheoryUtil:
     # 超级洛克里亚
     @classmethod
     def s_super_locrian(cls, root):
-        return cls.parse(root, "1,b2,b3,b4,b5,b6,b7")
+        return cls.parse(root, "1,b2,b3,3,b5,b6,b7")
 
     # 吉普赛
     @classmethod
@@ -285,21 +308,28 @@ class TheoryUtil:
 
 
 if __name__ == "__main__":
+    from pprint import pprint
     # chords
-    print(TheoryUtil.x("C"))
-    print(TheoryUtil.x_min("C"))
-    print(TheoryUtil.x_sus2("C"))
-    print(TheoryUtil.x_sus4("C"))
-    print(TheoryUtil.x_dim("C"))
-    print(TheoryUtil.x_aug("C"))
-    print(TheoryUtil.x_7("C"))
+    pprint(TheoryUtil.x("C"))
+    pprint(TheoryUtil.x_min("C"))
+    pprint(TheoryUtil.x_sus2("C"))
+    pprint(TheoryUtil.x_sus4("C"))
+    pprint(TheoryUtil.x_dim("C"))
+    pprint(TheoryUtil.x_aug("C"))
+    pprint(TheoryUtil.x_7("C"))
 
     # scales
-    print(TheoryUtil.s_maj_nature("C"))
-    print(TheoryUtil.s_maj_harmonic("C"))
-    print(TheoryUtil.s_maj_melodic("C"))
+    pprint(TheoryUtil.s_maj_nature("C"))
+    pprint(TheoryUtil.s_maj_harmonic("C"))
+    pprint(TheoryUtil.s_maj_melodic("C"))
 
-    print(TheoryUtil.s_maj_nature("D"))
-    print(TheoryUtil.s_maj_harmonic("D"))
-    print(TheoryUtil.s_maj_melodic("D"))
+    pprint(TheoryUtil.s_maj_nature("D"))
+    pprint(TheoryUtil.s_maj_harmonic("D"))
+    pprint(TheoryUtil.s_maj_melodic("D"))
 
+    # chord in scale
+    pprint(TheoryUtil.chord_in_scale(TheoryUtil.x("D"), TheoryUtil.s_maj_nature("D")))
+    pprint(TheoryUtil.chord_in_scale(TheoryUtil.x_min("D"), TheoryUtil.s_maj_nature("D")))
+
+    # find scale by chord
+    pprint(TheoryUtil.find_scales_by_chord(TheoryUtil.x_maj7("F")))
