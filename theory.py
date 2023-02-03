@@ -89,8 +89,8 @@ class TheoryUtil:
         return cls.parse(root, "1,b3,5,7")
 
     @classmethod
-    def x_7(cls, root):
-        return cls.parse(root, "1,3,5,b7")
+    def x_7(cls, root, color=[]):
+        return cls.parse(root, ",".join(["1,3,5,b7", ",".join(color)]))
 
     @classmethod
     def x_min_7(cls, root):
@@ -316,7 +316,10 @@ if __name__ == "__main__":
     pprint(TheoryUtil.x_sus4("C"))
     pprint(TheoryUtil.x_dim("C"))
     pprint(TheoryUtil.x_aug("C"))
-    pprint(TheoryUtil.x_7("C"))
+    pprint(TheoryUtil.x_7("C", color=["9"]))
+    pprint(TheoryUtil.x_9("C"))
+    pprint(TheoryUtil.x_7("C", color=["b9"]))
+
 
     # scales
     pprint(TheoryUtil.s_maj_nature("C"))
