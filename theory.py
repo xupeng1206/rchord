@@ -1,10 +1,88 @@
 class TheoryUtil:
-    note_names = "CDEFGAB" * 3
+    note_letters = "CDEFGAB" * 3
     note_lst = ["C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"]
     note_lst_x3 = note_lst * 3
 
     simple_note_lst = ["1", "b2/#1", "2", "b3/#2", "3", "4", "b5/#4", "5", "b6/#5", "6", "b7/#6", "7"] + \
                       ["-", "b9", "9", "#9", "-", "11", "#11", "-", "b13", "13", "-", "-"]
+
+    chord_map = {
+        "X": "1,b3,5",
+        "Xm": "1,b3,5",
+        "Xaug": "1,3,#5",
+        "Xdim": "1,b3,b5",
+        "Xsus4": "1,4,5",
+        "Xsus2": "1,2,5",
+        "X6": "1,3,5,6",
+        "XM7": "1,3,5,7",
+        "XmM7": "1,b3,5,7",
+        "X7": "1,3,5,b7",
+        "Xm7": "1,b3,5,b7",
+        "Xm7b5": "1,b3,b5,b7",
+        "Xdim7": "1,b3,b5,6",
+        "Xadd9": "1,3,5,9",
+        "XM9": "1,3,5,7,9",
+        "XmM9": "1,b3,5,7,9",
+        "X9": "1,3,5,b7,9",
+        "Xm9": "1,b3,5,b7,9",
+        "X11": "1,3,5,b7,9,11",
+        "Xm11": "1,b3,5,b7,9,11",
+        "X13": "1,3,5,b7,9,11,13",
+    }
+
+    scale_map = {
+        "maj_nature": {"pattern": "1,2,3,4,5,6,7", "cn": "自然大调", "en": ""},
+        "maj_harmonic": {"pattern": "1,2,3,4,5,b6,7", "cn": "和声大调", "en": ""},
+        "maj_melodic": {"pattern": "1,2,3,4,5,b6,b7", "cn": "旋律大调", "en": ""},
+        "min_nature": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "自然小调", "en": ""},
+        "min_harmonic": {"pattern": "1,2,b3,4,5,b6,7", "cn": "和声小调", "en": ""},
+        "min_melodic": {"pattern": "1,2,b3,4,5,6,7", "cn": "旋律小调", "en": ""},
+        "ionian": {"pattern": "1,2,3,4,5,6,7", "cn": "伊奥尼亚", "en": ""},
+        "dorian": {"pattern": "1,2,b3,4,5,6,b7", "cn": "多利亚", "en": ""},
+        "phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "cn": "弗里几亚", "en": ""},
+        "lydian": {"pattern": "1,2,3,#4,5,6,7", "cn": "利底亚", "en": ""},
+        "mixolydian": {"pattern": "1,2,3,4,5,6,b7", "cn": "混合利底亚", "en": ""},
+        "aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "爱奥尼亚", "en": ""},
+        "locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "cn": "洛克里亚", "en": ""},
+        "full_half_dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "cn": "全半减音阶", "en": ""},
+        "half_full_dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "cn": "半全减音阶", "en": ""},
+        "full": {"pattern": "1,2,3,#4,#5,#6", "cn": "全音阶", "en": ""},
+        "blus": {"pattern": "1,b3,4,b5,5,b7", "cn": "布鲁斯", "en": ""},
+        "mix_blus": {"pattern": "1,b3,3,4,b5,5,b7", "cn": "混合布鲁斯", "en": ""},
+        "aux_blus": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "cn": "辅助布鲁斯", "en": ""},
+        "jazz_min": {"pattern": "1,2,b3,4,5,6,7", "cn": "爵士小音阶", "en": ""},
+        "blue_maj": {"pattern": "1,2,b3,4,b5,b6,7", "cn": "蓝调大音阶", "en": ""},
+        "phrygian_dominant": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "大弗里几亚", "en": ""},
+        "lydian_dominant": {"pattern": "1,2,3,#4,5,6,b7", "cn": "大利底亚", "en": ""},
+        "super_locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "cn": "超级洛克里亚", "en": ""},
+        "gypsy": {"pattern": "1,b3,#4,5,b6,b7", "cn": "吉普赛音阶", "en": ""},
+        "hungarian_maj": {"pattern": "1,#2,3,#4,5,6,b7", "cn": "匈牙利大音阶", "en": ""},
+        "hungarian_min": {"pattern": "1,2,b3,#4,5,b6,7", "cn": "匈牙利小音阶", "en": ""},
+        "bibop": {"pattern": "1,2,3,4,5,6,b7,7", "cn": "比波普属音阶", "en": ""},
+        "india": {"pattern": "1,2,3,4,5,b6,b7", "cn": "印度音阶", "en": ""},
+        "jap": {"pattern": "1,3,4,6,7", "cn": "日本音阶", "en": ""},
+        "russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "cn": "俄罗斯音阶", "en": ""},
+        "arabian": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "阿拉伯音阶", "en": ""},
+        "oriental": {"pattern": "1,b2,3,4,b5,6,b7", "cn": "东方音阶", "en": ""},
+        "spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "cn": "西班牙音阶", "en": ""},
+    }
+
+    @classmethod
+    def make_chord(cls, chord_name):
+        if len(chord_name) >= 2 and chord_name[1] in "b#":
+            root = chord_name[:2]
+            chord_tag = "X" + chord_name[2:]
+            return cls.parse(root, cls.chord_map[chord_tag])
+        else:
+            root = chord_name[0]
+            chord_tag = "X" + chord_name[1:]
+            return cls.parse(root, cls.chord_map[chord_tag])
+
+    @classmethod
+    def make_scale(cls, scale_name):
+        # scale_tag example: D#/blus
+        root, tag = scale_name.split("/")
+        return cls.parse(root, cls.scale_map[tag]["pattern"])
 
     @classmethod
     def chord_in_scale(cls, chord, scale):
@@ -36,14 +114,14 @@ class TheoryUtil:
     @classmethod
     def parse(cls, root, pattern):
         root_start = cls.note_index(cls.note_lst_x3, root)
-        root_name = root.strip("#b")
-        root_name_start = cls.note_names.index(root_name)
+        root_letter = root.strip("#b")
+        root_letter_start = cls.note_letters.index(root_letter)
         ret_multi_notes = []
         ret_single_notes = []
         for s_note in pattern.split(","):
-            note = cls.note_lst_x3[root_start+cls.note_index(cls.simple_note_lst, s_note)]
+            note = cls.note_lst_x3[root_start + cls.note_index(cls.simple_note_lst, s_note)]
             ret_multi_notes.append(note)
-            name = cls.note_names[root_name_start + int(s_note.strip("#b"))-1]
+            name = cls.note_letters[root_letter_start + int(s_note.strip("#b")) - 1]
             ret_note = note
             for n in note.split('/'):
                 if n.strip("#b") == name:
@@ -52,286 +130,8 @@ class TheoryUtil:
             ret_single_notes.append(ret_note)
         return ret_single_notes, ret_multi_notes
 
-    @classmethod
-    def x(cls, root):
-        return cls.parse(root, "1,3,5")
-
-    @classmethod
-    def x_min(cls, root):
-        return cls.parse(root, "1,b3,5")
-
-    @classmethod
-    def x_aug(cls, root):
-        return cls.parse(root, "1,3,#5")
-
-    @classmethod
-    def x_dim(cls, root):
-        return cls.parse(root, "1,b3,b5")
-
-    @classmethod
-    def x_sus4(cls, root):
-        return cls.parse(root, "1,4,5")
-
-    @classmethod
-    def x_sus2(cls, root):
-        return cls.parse(root, "1,2,5")
-
-    @classmethod
-    def x_6(cls, root):
-        return cls.parse(root, "1,3,5,6")
-
-    @classmethod
-    def x_maj7(cls, root):
-        return cls.parse(root, "1,3,5,7")
-
-    @classmethod
-    def x_min_maj7(cls, root):
-        return cls.parse(root, "1,b3,5,7")
-
-    @classmethod
-    def x_7(cls, root, color=[]):
-        return cls.parse(root, ",".join(["1,3,5,b7", ",".join(color)]))
-
-    @classmethod
-    def x_min_7(cls, root):
-        return cls.parse(root, "1,b3,5,b7")
-
-    @classmethod
-    def x_min7b5(cls, root):
-        return cls.parse(root, "1,b3,b5,b7")
-
-    @classmethod
-    def x_dim7(cls, root):
-        return cls.parse(root, "1,b3,b5,6")
-
-    @classmethod
-    def x_add9(cls, root):
-        return cls.parse(root, "1,3,5,9")
-
-    @classmethod
-    def x_maj9(cls, root):
-        return cls.parse(root, "1,3,5,7,9")
-
-    @classmethod
-    def x_min_maj9(cls, root):
-        return cls.parse(root, "1,b3,5,7,9")
-
-    @classmethod
-    def x_9(cls, root):
-        return cls.parse(root, "1,3,5,b7,9")
-
-    @classmethod
-    def x_min9(cls, root):
-        return cls.parse(root, "1,b3,5,b7,9")
-
-    @classmethod
-    def x_11(cls, root):
-        return cls.parse(root, "1,3,5,b7,9,11")
-
-    @classmethod
-    def x_min11(cls, root):
-        return cls.parse(root, "1,b3,5,b7,9,11")
-
-    @classmethod
-    def x_13(cls, root):
-        return cls.parse(root, "1,3,5,b7,9,11,13")
-
-    # 自然大调
-    @classmethod
-    def s_maj_nature(cls, root):
-        return cls.parse(root, "1,2,3,4,5,6,7")
-
-    # 和声大调
-    @classmethod
-    def s_maj_harmonic(cls, root):
-        return cls.parse(root, "1,2,3,4,5,b6,7")
-
-    # 旋律大调
-    @classmethod
-    def s_maj_melodic(cls, root):
-        return cls.parse(root, "1,2,3,4,5,b6,b7")
-
-    # 自然小调
-    @classmethod
-    def s_min_nature(cls, root):
-        return cls.parse(root, "1,2,b3,4,5,b6,b7")
-
-    # 和声小调
-    @classmethod
-    def s_min_harmonic(cls, root):
-        return cls.parse(root, "1,2,b3,4,5,b6,7")
-
-    # 旋律小调
-    @classmethod
-    def s_min_melodic(cls, root):
-        return cls.parse(root, "1,2,b3,4,5,6,7")
-
-    # 伊奥尼亚 自然大调 调1
-    @classmethod
-    def s_ionian(cls, root):
-        return cls.parse(root, "1,2,3,4,5,6,7")
-
-    # 多利亚 调2
-    @classmethod
-    def s_dorian(cls, root):
-        return cls.parse(root, "1,2,b3,4,5,6,b7")
-
-    # 弗里几亚 调3
-    @classmethod
-    def s_phrygian(cls, root):
-        return cls.parse(root, "1,b2,b3,4,5,b6,b7")
-
-    # 利底亚 调4
-    @classmethod
-    def s_lydian(cls, root):
-        return cls.parse(root, "1,2,3,#4,5,6,7")
-
-    # 混合利底亚 调5
-    @classmethod
-    def s_mixolydian(cls, root):
-        return cls.parse(root, "1,2,3,4,5,6,b7")
-
-    # 爱奥尼亚 自然小调 调6
-    @classmethod
-    def s_aeolian(cls, root):
-        return cls.parse(root, "1,2,b3,4,5,b6,b7")
-
-    # 洛克里亚 调7
-    @classmethod
-    def s_locrian(cls, root):
-        return cls.parse(root, "1,b2,b3,4,b5,b6,b7")
-
-    # 全半减音阶
-    @classmethod
-    def s_full_half_dim(cls, root):
-        return cls.parse(root, "1,2,b3,4,b5,b6,6,7")
-
-    # 半全减音阶
-    @classmethod
-    def s_half_full_dim(cls, root):
-        return cls.parse(root, "1,b2,b3,3,b5,5,6,b7")
-
-    # 全音阶
-    @classmethod
-    def s_full(cls, root):
-        return cls.parse(root, "1,2,3,#4,#5,#6")
-
-    # 布鲁斯
-    @classmethod
-    def s_blus(cls, root):
-        return cls.parse(root, "1,b3,4,b5,5,b7")
-
-    # 混合布鲁斯
-    @classmethod
-    def s_mix_blus(cls, root):
-        return cls.parse(root, "1,b3,3,4,b5,5,b7")
-
-    # 辅助布鲁斯
-    @classmethod
-    def s_aux_blus(cls, root):
-        return cls.parse(root, "1,2,b3,3,4,#4,5,6,b7")
-
-    # 爵士小音阶
-    @classmethod
-    def s_jazz_min(cls, root):
-        return cls.parse(root, "1,2,b3,4,5,6,7")
-
-    # 蓝调大音阶
-    @classmethod
-    def s_blue_maj(cls, root):
-        return cls.parse(root, "1,2,b3,4,b5,b6,7")
-
-    # 大弗里几亚
-    @classmethod
-    def s_phrygian_dominant(cls, root):
-        return cls.parse(root, "1,b2,3,4,5,b6,b7")
-
-    # 大利底亚
-    @classmethod
-    def s_lydian_dominant(cls, root):
-        return cls.parse(root, "1,2,3,#4,5,6,b7")
-
-    # 超级洛克里亚
-    @classmethod
-    def s_super_locrian(cls, root):
-        return cls.parse(root, "1,b2,b3,3,b5,b6,b7")
-
-    # 吉普赛
-    @classmethod
-    def s_gypsy(cls, root):
-        return cls.parse(root, "1,b3,#4,5,b6,b7")
-
-    # 匈牙利大音阶
-    @classmethod
-    def s_hungarian_maj(cls, root):
-        return cls.parse(root, "1,#2,3,#4,5,6,b7")
-
-    # 匈牙利小音阶
-    @classmethod
-    def s_hungarian_min(cls, root):
-        return cls.parse(root, "1,2,b3,#4,5,b6,7")
-
-    # 比波普属
-    @classmethod
-    def s_bibop(cls, root):
-        return cls.parse(root, "1,2,3,4,5,6,b7,7")
-
-    # 印度音阶
-    @classmethod
-    def s_india(cls, root):
-        return cls.parse(root, "1,2,3,4,5,b6,b7")
-
-    # 日本
-    @classmethod
-    def s_jap(cls, root):
-        return cls.parse(root, "1,3,4,6,7")
-
-    # 俄罗斯
-    @classmethod
-    def s_russia(cls, root):
-        return cls.parse(root, "1,b2,2,b3,4,5,b6,6,b7,7")
-
-    # 阿拉伯
-    @classmethod
-    def s_arabian(cls, root):
-        return cls.parse(root, "1,b2,3,4,5,b6,b7")
-
-    # 东方音阶
-    @classmethod
-    def s_oriental(cls, root):
-        return cls.parse(root, "1,b2,3,4,b5,6,b7")
-
-    # 西班牙
-    @classmethod
-    def s_spanish(cls, root):
-        return cls.parse(root, "1,b2,b3,3,4,b5,b6,b7")
-
 
 if __name__ == "__main__":
     from pprint import pprint
-    # chords
-    pprint(TheoryUtil.x("C"))
-    pprint(TheoryUtil.x_min("C"))
-    pprint(TheoryUtil.x_sus2("C"))
-    pprint(TheoryUtil.x_sus4("C"))
-    pprint(TheoryUtil.x_dim("C"))
-    pprint(TheoryUtil.x_aug("C"))
-    pprint(TheoryUtil.x_7("C", color=["9"]))
-    pprint(TheoryUtil.x_9("C"))
-    pprint(TheoryUtil.x_7("C", color=["b9"]))
-
-    # scales
-    pprint(TheoryUtil.s_maj_nature("C"))
-    pprint(TheoryUtil.s_maj_harmonic("C"))
-    pprint(TheoryUtil.s_maj_melodic("C"))
-
-    pprint(TheoryUtil.s_maj_nature("D"))
-    pprint(TheoryUtil.s_maj_harmonic("D"))
-    pprint(TheoryUtil.s_maj_melodic("D"))
-
-    # chord in scale
-    pprint(TheoryUtil.chord_in_scale(TheoryUtil.x("D"), TheoryUtil.s_maj_nature("D")))
-    pprint(TheoryUtil.chord_in_scale(TheoryUtil.x_min("D"), TheoryUtil.s_maj_nature("D")))
-
-    # find scale by chord
-    pprint(TheoryUtil.find_scales_by_chord(TheoryUtil.x_maj7("F")))
+    pprint(TheoryUtil.make_chord("Dbm7b5"))
+    pprint(TheoryUtil.make_scale("D#/blus"))
