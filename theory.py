@@ -14,6 +14,7 @@ class TheoryUtil:
         "Xsus4": "1,4,5",
         "Xsus2": "1,2,5",
         "X6": "1,3,5,6",
+        "Xm6": "1,b3,5,6",
         "XM7": "1,3,5,7",
         "XmM7": "1,b3,5,7",
         "X7": "1,3,5,b7",
@@ -36,51 +37,59 @@ class TheoryUtil:
         "Xm7": "1,b3,5,b7",
         "Xm7b5": "1,b3,b5,b7",
         "Xdim7": "1,b3,b5,6",
+        "Xaug7": "1,3,#5,7",
+        "X69": "1,3,5,6,9",
+        "Xm69": "1,b3,5,6,9",
         "Xadd9": "1,3,5,9",
         "XM9": "1,3,5,7,9",
         "XmM9": "1,b3,5,7,9",
         "X9": "1,3,5,b7,9",
+        "X9sus4": "1,4,5,b7,9",
         "Xm9": "1,b3,5,b7,9",
+        "Xm9b5": "1,b3,b5,b7,9",
+        "Xaug9": "1,3,5#,b7,9",
+        "XaugM9": "1,3,5#,7,9",
+        "Xdim9": "1,b3,b5,6,9",
         "X11": "1,3,5,b7,9,11",
         "Xm11": "1,b3,5,b7,9,11",
         "X13": "1,3,5,b7,9,11,13",
     }
 
     scale_map = {
-        "maj_nature": {"pattern": "1,2,3,4,5,6,7", "cn": "自然大调", "en": ""},
-        "maj_harmonic": {"pattern": "1,2,3,4,5,b6,7", "cn": "和声大调", "en": ""},
-        "maj_melodic": {"pattern": "1,2,3,4,5,b6,b7", "cn": "旋律大调", "en": ""},
-        "min_nature": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "自然小调", "en": ""},
-        "min_harmonic": {"pattern": "1,2,b3,4,5,b6,7", "cn": "和声小调", "en": ""},
-        "min_melodic": {"pattern": "1,2,b3,4,5,6,7", "cn": "旋律小调", "en": ""},
-        "ionian": {"pattern": "1,2,3,4,5,6,7", "cn": "伊奥尼亚", "en": ""},
-        "dorian": {"pattern": "1,2,b3,4,5,6,b7", "cn": "多利亚", "en": ""},
-        "phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "cn": "弗里几亚", "en": ""},
-        "lydian": {"pattern": "1,2,3,#4,5,6,7", "cn": "利底亚", "en": ""},
-        "mixolydian": {"pattern": "1,2,3,4,5,6,b7", "cn": "混合利底亚", "en": ""},
-        "aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "爱奥尼亚", "en": ""},
-        "locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "cn": "洛克里亚", "en": ""},
-        "full_half_dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "cn": "全半减音阶", "en": ""},
-        "half_full_dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "cn": "半全减音阶", "en": ""},
-        "full": {"pattern": "1,2,3,#4,#5,#6", "cn": "全音阶", "en": ""},
-        "blus": {"pattern": "1,b3,4,b5,5,b7", "cn": "布鲁斯", "en": ""},
-        "mix_blus": {"pattern": "1,b3,3,4,b5,5,b7", "cn": "混合布鲁斯", "en": ""},
-        "aux_blus": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "cn": "辅助布鲁斯", "en": ""},
-        "jazz_min": {"pattern": "1,2,b3,4,5,6,7", "cn": "爵士小音阶", "en": ""},
-        "blue_maj": {"pattern": "1,2,b3,4,b5,b6,7", "cn": "蓝调大音阶", "en": ""},
-        "phrygian_dominant": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "大弗里几亚", "en": ""},
-        "lydian_dominant": {"pattern": "1,2,3,#4,5,6,b7", "cn": "大利底亚", "en": ""},
-        "super_locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "cn": "超级洛克里亚", "en": ""},
-        "gypsy": {"pattern": "1,b3,#4,5,b6,b7", "cn": "吉普赛音阶", "en": ""},
-        "hungarian_maj": {"pattern": "1,#2,3,#4,5,6,b7", "cn": "匈牙利大音阶", "en": ""},
-        "hungarian_min": {"pattern": "1,2,b3,#4,5,b6,7", "cn": "匈牙利小音阶", "en": ""},
-        "bibop": {"pattern": "1,2,3,4,5,6,b7,7", "cn": "比波普属音阶", "en": ""},
-        "india": {"pattern": "1,2,3,4,5,b6,b7", "cn": "印度音阶", "en": ""},
-        "jap": {"pattern": "1,3,4,6,7", "cn": "日本音阶", "en": ""},
-        "russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "cn": "俄罗斯音阶", "en": ""},
-        "arabian": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "阿拉伯音阶", "en": ""},
-        "oriental": {"pattern": "1,b2,3,4,b5,6,b7", "cn": "东方音阶", "en": ""},
-        "spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "cn": "西班牙音阶", "en": ""},
+        "natural_maj": {"pattern": "1,2,3,4,5,6,7", "cn": "自然大调", "en": "natural_maj"},
+        "harmonic_maj": {"pattern": "1,2,3,4,5,b6,7", "cn": "和声大调", "en": "harmonic_maj"},
+        "melodic_maj": {"pattern": "1,2,3,4,5,b6,b7", "cn": "旋律大调", "en": "melodic_maj"},
+        "natural_min": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "自然小调", "en": "natural_min"},
+        "harmonic_min": {"pattern": "1,2,b3,4,5,b6,7", "cn": "和声小调", "en": "harmonic_min"},
+        "melodic_min": {"pattern": "1,2,b3,4,5,6,7", "cn": "旋律小调", "en": "melodic_min"},
+        "ionian": {"pattern": "1,2,3,4,5,6,7", "cn": "伊奥尼亚", "en": "ionian"},
+        "dorian": {"pattern": "1,2,b3,4,5,6,b7", "cn": "多利亚", "en": "dorian"},
+        "phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "cn": "弗里几亚", "en": "phrygian"},
+        "lydian": {"pattern": "1,2,3,#4,5,6,7", "cn": "利底亚", "en": "lydian"},
+        "mixolydian": {"pattern": "1,2,3,4,5,6,b7", "cn": "混合利底亚", "en": "mixolydian"},
+        "aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "爱奥尼亚", "en": "aeolian"},
+        "locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "cn": "洛克里亚", "en": "locrian"},
+        "whole_half_dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "cn": "全半减音阶", "en": "whole_half_dim"},
+        "half_whole_dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "cn": "半全减音阶", "en": "half_whole_dim"},
+        "diatonic": {"pattern": "1,2,3,#4,#5,#6", "cn": "全音阶", "en": "diatonic"},
+        "blues": {"pattern": "1,b3,4,b5,5,b7", "cn": "布鲁斯", "en": "blues"},
+        "mix_blues": {"pattern": "1,b3,3,4,b5,5,b7", "cn": "混合布鲁斯", "en": "mix_blues"},
+        "aux_blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "cn": "辅助布鲁斯", "en": "aux_blues"},
+        "jazz_min": {"pattern": "1,2,b3,4,5,6,7", "cn": "爵士小音阶", "en": "jazz_min"},
+        "blues_maj": {"pattern": "1,2,b3,4,b5,b6,7", "cn": "蓝调大音阶", "en": "blues_maj"},
+        "phrygian_dominant": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "大弗里几亚", "en": "phrygian_dominant"},
+        "lydian_dominant": {"pattern": "1,2,3,#4,5,6,b7", "cn": "大利底亚", "en": "lydian_dominant"},
+        "super_locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "cn": "超级洛克里亚", "en": "super_locrian"},
+        "gypsy": {"pattern": "1,b3,#4,5,b6,b7", "cn": "吉普赛音阶", "en": "gypsy"},
+        "hungarian_maj": {"pattern": "1,#2,3,#4,5,6,b7", "cn": "匈牙利大音阶", "en": "hungarian_maj"},
+        "hungarian_min": {"pattern": "1,2,b3,#4,5,b6,7", "cn": "匈牙利小音阶", "en": "hungarian_min"},
+        "bibop": {"pattern": "1,2,3,4,5,6,b7,7", "cn": "比波普属音阶", "en": "bibop"},
+        "india": {"pattern": "1,2,3,4,5,b6,b7", "cn": "印度音阶", "en": "india"},
+        "jap": {"pattern": "1,3,4,6,7", "cn": "日本音阶", "en": "jap"},
+        "russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "cn": "俄罗斯音阶", "en": "russia"},
+        "arabian": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "阿拉伯音阶", "en": "arabian"},
+        "oriental": {"pattern": "1,b2,3,4,b5,6,b7", "cn": "东方音阶", "en": "oriental"},
+        "spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "cn": "西班牙音阶", "en": "spanish"},
     }
 
     @classmethod
@@ -96,7 +105,7 @@ class TheoryUtil:
 
     @classmethod
     def make_scale(cls, scale_name):
-        # scale_tag example: D#/blus
+        # scale_tag example: D#/blues
         root, tag = scale_name.split("/")
         return cls.parse(root, cls.scale_map[tag]["pattern"])
 
@@ -109,14 +118,12 @@ class TheoryUtil:
         scales = []
         for notes in cls.note_lst:
             for note in notes.split("/"):
-                for attr in dir(cls):
-                    if not attr.startswith("s_"):
-                        continue
-                    tmp_scale = getattr(cls, attr)(note)
+                for tag, val in cls.scale_map:
+                    tmp_scale = cls.parse(note, val["pattern"])
                     if cls.chord_in_scale(chord, tmp_scale):
                         scales.append({
                             "root": note,
-                            "scale": attr,
+                            "tag": tag,
                             "notes": tmp_scale,
                         })
         return scales
@@ -151,4 +158,6 @@ if __name__ == "__main__":
     from pprint import pprint
     pprint(TheoryUtil.make_chord("Dbm7b5"))
     pprint(TheoryUtil.make_chord("Db7b9#11"))
-    pprint(TheoryUtil.make_scale("D#/blus"))
+    pprint(TheoryUtil.make_scale("D#/blues"))
+    pprint(TheoryUtil.chord_in_scale(TheoryUtil.make_chord("CM7"), TheoryUtil.make_scale("C/maj_natural")))
+    pprint(TheoryUtil.find_scales_by_chord(TheoryUtil.make_chord("CM7")))
