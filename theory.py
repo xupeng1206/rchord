@@ -97,16 +97,22 @@ class TheoryUtil:
         if len(chord_name) >= 2 and chord_name[1] in "b#":
             root = chord_name[:2]
             chord_tag = "X" + chord_name[2:]
+            if chord_tag not in cls.chord_map:
+                raise Exception("chord not support.")
             return cls.parse(root, cls.chord_map[chord_tag])
         else:
             root = chord_name[0]
             chord_tag = "X" + chord_name[1:]
+            if chord_tag not in cls.chord_map:
+                raise Exception("chord not support.")
             return cls.parse(root, cls.chord_map[chord_tag])
 
     @classmethod
     def make_scale(cls, scale_name):
         # scale_tag example: D#/blues
         root, tag = scale_name.split("/")
+        if tag not in cls.scale_map:
+            raise Exception("scale not support.")
         return cls.parse(root, cls.scale_map[tag]["pattern"])
 
     @classmethod
@@ -118,7 +124,7 @@ class TheoryUtil:
         scales = []
         for notes in cls.note_lst:
             for note in notes.split("/"):
-                for tag, val in cls.scale_map:
+                for tag, val in cls.scale_map.items():
                     tmp_scale = cls.parse(note, val["pattern"])
                     if cls.chord_in_scale(chord, tmp_scale):
                         scales.append({
@@ -159,5 +165,5 @@ if __name__ == "__main__":
     pprint(TheoryUtil.make_chord("Dbm7b5"))
     pprint(TheoryUtil.make_chord("Db7b9#11"))
     pprint(TheoryUtil.make_scale("D#/blues"))
-    pprint(TheoryUtil.chord_in_scale(TheoryUtil.make_chord("CM7"), TheoryUtil.make_scale("C/maj_natural")))
+    pprint(TheoryUtil.chord_in_scale(TheoryUtil.make_chord("CM7"), TheoryUtil.make_scale("C/natural_maj")))
     pprint(TheoryUtil.find_scales_by_chord(TheoryUtil.make_chord("CM7")))
