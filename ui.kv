@@ -7,7 +7,7 @@
             size: self.size
     size: root.width, root.height
 
-<UiScaleNoteList>
+<UiChordRootNoteList>
     canvas:
         Color:
             rgba: COLOR("#838B8B")
@@ -16,7 +16,7 @@
             size: self.size
     size: root.width, root.height
 
-<UiBassNoteList>
+<UiChordBassNoteList>
     canvas:
         Color:
             rgba: COLOR("#838B8B")
@@ -26,6 +26,15 @@
     size: root.width, root.height
 
 <UiChordList>
+    canvas:
+        Color:
+            rgba: COLOR("#838B8B")
+        Rectangle:
+            pos: self.pos
+            size: self.size
+    size: root.width, root.height
+
+<UiChordSelectorPage>
     canvas:
         Color:
             rgba: COLOR("#838B8B")
