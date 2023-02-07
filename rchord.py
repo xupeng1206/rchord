@@ -93,6 +93,22 @@ class ChordBaseNoteList(Frame):
             btn.configure(text=note)
 
 
+class ChordList(Frame):
+    def __init__(self, cols, **kwargs):
+        super().__init__(**kwargs)
+        for i in range(len(Theory.chord_map)):
+            btn = Button(self)
+            btn.grid(column=i % cols, row=int(i / cols))
+            setattr(self, f"chord_{i}", btn)
+
+        self.refresh()
+
+    def refresh(self):
+        for i in range(len(Theory.chord_map)):
+            btn = getattr(self, f"chord_{i}")
+            btn.configure(text=list(Theory.chord_map.keys())[i].replace("X", GlobalState.chord_root))
+
+
 class Piano(Frame):
 
     def __init__(self, oct_num, **kwargs):
@@ -243,6 +259,10 @@ class App:
         self.chord_root_note_list = ChordRootNoteList()
         self.chord_root_note_list.master = self.app
         self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.chord_list = ChordList(5)
+        self.chord_list.master = self.app
+        self.chord_list.pack(side=LEFT, fill=BOTH, expand=True)
 
         self.chord_bass_note_list = ChordBaseNoteList()
         self.chord_bass_note_list.master = self.app
