@@ -154,13 +154,9 @@ class Theory:
         for notes in cls.note_lst:
             for note in notes.split("/"):
                 for tag, val in cls.scale_map.items():
-                    tmp_scale = cls.make_scale(f"{note}/tag")
+                    tmp_scale = cls.make_scale(f"{note}/{tag}")
                     if all([bool(x in tmp_scale[1]) for x in chord[1]]):
-                        scales.append({
-                            "root": note,
-                            "tag": tag,
-                            "notes": tmp_scale,
-                        })
+                        scales.append(f"{note}/{tag}")
         return scales
 
     @classmethod
@@ -401,20 +397,106 @@ class ChordList(Frame):
         super().__init__(**kwargs)
 
         col_name = "和弦" if GlobalSetting.lan == "zh" else "Chord"
-        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=True)
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
-        self.chord_grid = ChordGrid(cols)
+        self.chord_grid = ChordGrid(cols, master=self)
         self.chord_grid.master = self
-        self.chord_grid.pack(side=BOTTOM, fill=BOTH, expand=True)
+        self.chord_grid.pack(side=TOP, fill=BOTH, expand=True)
         self.refresh()
 
     def refresh(self):
         self.chord_grid.refresh()
 
 
-class ChordDetail(Frame):
-    def __init__(self, cols, **kwargs):
+class ChordDetailVoicing(Frame):
+    def __init__(self, **kwargs):
         super().__init__(**kwargs)
+
+        col_name = "和弦排列:" if GlobalSetting.lan == "zh" else "Chord Voicing:"
+        Label(self, text=col_name, bg="gray").pack(side=LEFT, fill=X)
+
+        self.bass = Label(self, bg="gray")
+        self.bass.pack(side=LEFT, fill=X, padx=5)
+
+        self.voicing_entry = Entry(self)
+        self.voicing_entry.pack(side=LEFT, fill=X, expand=True)
+
+    def refresh(self):
+        self.bass.configure(text=GlobalState.chord_bass)
+
+
+class ChordDetailAuxScales(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "辅助音阶" if GlobalSetting.lan == "zh" else "Aux Scales"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.aux_list = Listbox(self)
+        self.aux_list.pack(side=TOP, fill=BOTH, expand=True)
+
+        self.refresh()
+
+    def refresh(self):
+        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
+        scales = Theory.find_scales_by_chord(chord)
+        for idx, scale in enumerate(scales):
+            note, tag = scale.split("/")
+            self.aux_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
+
+
+class ChordDetailAuxChords(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "辅助和弦" if GlobalSetting.lan == "zh" else "Aux Chords"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.aux_list = Listbox(self)
+        self.aux_list.pack(side=TOP, fill=BOTH, expand=True)
+
+        self.refresh()
+
+    def refresh(self):
+        pass
+
+
+class ChordDetailBottom(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.aux_scale_list = ChordDetailAuxScales(master=self)
+        self.aux_scale_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.aux_chord_list = ChordDetailAuxChords(master=self)
+        self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.refresh()
+
+    def refresh(self):
+        self.aux_scale_list.refresh()
+        self.aux_chord_list.refresh()
+
+
+class ChordDetailAll(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "和弦详情" if GlobalSetting.lan == "zh" else "Chord Detail"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.voicing = ChordDetailVoicing(master=self)
+        self.voicing.pack(side=TOP, fill=X, padx=10, pady=10)
+
+        self.listbox = ChordDetailBottom(master=self)
+        self.listbox.pack(side=TOP, fill=BOTH, expand=True)
+
+
+        self.refresh()
+
+    def refresh(self):
+        self.voicing.refresh()
+        self.listbox.refresh()
 
 
 class Piano(Frame):
@@ -544,39 +626,36 @@ class App:
         self.build()
 
     def build(self):
-        self.select_main_scale = SelectMainScaleUi()
-        self.select_main_scale.master = self.app
+        self.select_main_scale = SelectMainScaleUi(master=self.app)
         self.select_main_scale.pack(side=TOP, fill=BOTH, expand=False)
 
-        self.state_info = StateInfoUi()
-        self.state_info.master = self.app
+        self.state_info = StateInfoUi(master=self.app)
         self.state_info.pack(side=TOP, fill=BOTH, expand=False)
 
-        self.piano_aux_scale = Piano(3, bg="white")
-        self.piano_aux_scale.master = self.app
+        self.piano_aux_scale = Piano(3, bg="white", master=self.app)
         self.piano_aux_scale.pack(side=BOTTOM, fill=BOTH, expand=False)
 
         col_name = "辅助音阶图示" if GlobalSetting.lan == "zh" else "Aux Scale Display"
-        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=True)
+        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
 
-        self.piano_chord = Piano(3, bg="white")
-        self.piano_chord.master = self.app
+        self.piano_chord = Piano(3, bg="white", master=self.app)
         self.piano_chord.pack(side=BOTTOM, fill=BOTH, expand=False)
 
         col_name = "和弦图示" if GlobalSetting.lan == "zh" else "Chord Display"
-        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=True)
+        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
 
-        self.chord_root_note_list = ChordRootNoteList()
-        self.chord_root_note_list.master = self.app
+        self.chord_root_note_list = ChordRootNoteList(master=self.app)
         self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
 
-        self.chord_bass_note_list = ChordBaseNoteList()
-        self.chord_bass_note_list.master = self.app
+        self.chord_list = ChordList(5, master=self.app)
+        self.chord_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.chord_bass_note_list = ChordBaseNoteList(master=self.app)
         self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
 
-        self.chord_list = ChordList(5)
-        self.chord_list.master = self.app
-        self.chord_list.pack(side=LEFT, fill=BOTH, expand=True)
+        self.chord_detail = ChordDetailAll(master=self.app)
+        self.chord_detail.pack(side=LEFT, fill=BOTH, expand=True)
+
 
     def refresh(self):
         self.select_main_scale.refresh()
