@@ -7,7 +7,7 @@ class Theory:
                       ["-", "b9", "9", "#9", "-", "11", "#11", "-", "b13", "13", "-", "-"]
 
     chord_map = {
-        "X": "1,b3,5",
+        "X": "1,3,5",
         "Xm": "1,b3,5",
         "Xaug": "1,3,#5",
         "Xdim": "1,b3,b5",
@@ -56,41 +56,47 @@ class Theory:
     }
 
     scale_map = {
-        "Natural Maj": {"pattern": "1,2,3,4,5,6,7", "cn": "自然大调", "en": "Natural Maj"},
-        "Harmonic Maj": {"pattern": "1,2,3,4,5,b6,7", "cn": "和声大调", "en": "Harmonic Maj"},
-        "Melodic Maj": {"pattern": "1,2,3,4,5,b6,b7", "cn": "旋律大调", "en": "Melodic Maj"},
-        "Natural Min": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "自然小调", "en": "Natural Min"},
-        "Harmonic Min": {"pattern": "1,2,b3,4,5,b6,7", "cn": "和声小调", "en": "Harmonic Min"},
-        "Melodic Min": {"pattern": "1,2,b3,4,5,6,7", "cn": "旋律小调", "en": "Melodic Min"},
-        "Ionian": {"pattern": "1,2,3,4,5,6,7", "cn": "伊奥尼亚", "en": "Ionian"},
-        "Dorian": {"pattern": "1,2,b3,4,5,6,b7", "cn": "多利亚", "en": "Dorian"},
-        "Phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "cn": "弗里几亚", "en": "Phrygian"},
-        "Lydian": {"pattern": "1,2,3,#4,5,6,7", "cn": "利底亚", "en": "Lydian"},
-        "Mixolydian": {"pattern": "1,2,3,4,5,6,b7", "cn": "混合利底亚", "en": "Mixolydian"},
-        "Aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "cn": "爱奥尼亚", "en": "Aeolian"},
-        "Locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "cn": "洛克里亚", "en": "Locrian"},
-        "Whole Half Dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "cn": "全半减音阶", "en": "Whole Half Dim"},
-        "Half Whole Dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "cn": "半全减音阶", "en": "Half Whole Dim"},
-        "Diatonic": {"pattern": "1,2,3,#4,#5,#6", "cn": "全音阶", "en": "Diatonic"},
-        "Blues": {"pattern": "1,b3,4,b5,5,b7", "cn": "布鲁斯", "en": "Blues"},
-        "Mix Blues": {"pattern": "1,b3,3,4,b5,5,b7", "cn": "混合布鲁斯", "en": "Mix Blues"},
-        "Aux Blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "cn": "辅助布鲁斯", "en": "Aux Blues"},
-        "Jazz Min": {"pattern": "1,2,b3,4,5,6,7", "cn": "爵士小音阶", "en": "Jazz Min"},
-        "Blues Maj": {"pattern": "1,2,b3,4,b5,b6,7", "cn": "蓝调大音阶", "en": "Blues Maj"},
-        "Phrygian Dominant": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "大弗里几亚", "en": "Phrygian Dominant"},
-        "Lydian Dominant": {"pattern": "1,2,3,#4,5,6,b7", "cn": "大利底亚", "en": "Lydian Dominant"},
-        "Super Locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "cn": "超级洛克里亚", "en": "Super Locrian"},
-        "Gypsy": {"pattern": "1,b3,#4,5,b6,b7", "cn": "吉普赛音阶", "en": "Gypsy"},
-        "Hungarian Maj": {"pattern": "1,#2,3,#4,5,6,b7", "cn": "匈牙利大音阶", "en": "Hungarian Maj"},
-        "Hungarian Min": {"pattern": "1,2,b3,#4,5,b6,7", "cn": "匈牙利小音阶", "en": "Hungarian Min"},
-        "Bibop": {"pattern": "1,2,3,4,5,6,b7,7", "cn": "比波普属音阶", "en": "Bibop"},
-        "India": {"pattern": "1,2,3,4,5,b6,b7", "cn": "印度音阶", "en": "India"},
-        "Jap": {"pattern": "1,3,4,6,7", "cn": "日本音阶", "en": "Jap"},
-        "Russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "cn": "俄罗斯音阶", "en": "Russia"},
-        "Arabian": {"pattern": "1,b2,3,4,5,b6,b7", "cn": "阿拉伯音阶", "en": "Arabian"},
-        "Oriental": {"pattern": "1,b2,3,4,b5,6,b7", "cn": "东方音阶", "en": "Oriental"},
-        "Spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "cn": "西班牙音阶", "en": "Spanish"},
+        "Natural Maj": {"pattern": "1,2,3,4,5,6,7", "zh": "自然大调", "en": "Natural Maj"},
+        "Harmonic Maj": {"pattern": "1,2,3,4,5,b6,7", "zh": "和声大调", "en": "Harmonic Maj"},
+        "Melodic Maj": {"pattern": "1,2,3,4,5,b6,b7", "zh": "旋律大调", "en": "Melodic Maj"},
+        "Natural Min": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "自然小调", "en": "Natural Min"},
+        "Harmonic Min": {"pattern": "1,2,b3,4,5,b6,7", "zh": "和声小调", "en": "Harmonic Min"},
+        "Melodic Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "旋律小调", "en": "Melodic Min"},
+        "Ionian": {"pattern": "1,2,3,4,5,6,7", "zh": "伊奥尼亚", "en": "Ionian"},
+        "Dorian": {"pattern": "1,2,b3,4,5,6,b7", "zh": "多利亚", "en": "Dorian"},
+        "Phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "zh": "弗里几亚", "en": "Phrygian"},
+        "Lydian": {"pattern": "1,2,3,#4,5,6,7", "zh": "利底亚", "en": "Lydian"},
+        "Mixolydian": {"pattern": "1,2,3,4,5,6,b7", "zh": "混合利底亚", "en": "Mixolydian"},
+        "Aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "爱奥尼亚", "en": "Aeolian"},
+        "Locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "zh": "洛克里亚", "en": "Locrian"},
+        "Whole Half Dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "zh": "全半减音阶", "en": "Whole Half Dim"},
+        "Half Whole Dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "zh": "半全减音阶", "en": "Half Whole Dim"},
+        "Diatonic": {"pattern": "1,2,3,#4,#5,#6", "zh": "全音阶", "en": "Diatonic"},
+        "Blues": {"pattern": "1,b3,4,b5,5,b7", "zh": "布鲁斯", "en": "Blues"},
+        "Mix Blues": {"pattern": "1,b3,3,4,b5,5,b7", "zh": "混合布鲁斯", "en": "Mix Blues"},
+        "Aux Blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "zh": "辅助布鲁斯", "en": "Aux Blues"},
+        "Jazz Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "爵士小音阶", "en": "Jazz Min"},
+        "Blues Maj": {"pattern": "1,2,b3,4,b5,b6,7", "zh": "蓝调大音阶", "en": "Blues Maj"},
+        "Phrygian Dominant": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "大弗里几亚", "en": "Phrygian Dominant"},
+        "Lydian Dominant": {"pattern": "1,2,3,#4,5,6,b7", "zh": "大利底亚", "en": "Lydian Dominant"},
+        "Super Locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "zh": "超级洛克里亚", "en": "Super Locrian"},
+        "Gypsy": {"pattern": "1,b3,#4,5,b6,b7", "zh": "吉普赛音阶", "en": "Gypsy"},
+        "Hungarian Maj": {"pattern": "1,#2,3,#4,5,6,b7", "zh": "匈牙利大音阶", "en": "Hungarian Maj"},
+        "Hungarian Min": {"pattern": "1,2,b3,#4,5,b6,7", "zh": "匈牙利小音阶", "en": "Hungarian Min"},
+        "Bibop": {"pattern": "1,2,3,4,5,6,b7,7", "zh": "比波普属音阶", "en": "Bibop"},
+        "India": {"pattern": "1,2,3,4,5,b6,b7", "zh": "印度音阶", "en": "India"},
+        "Jap": {"pattern": "1,3,4,6,7", "zh": "日本音阶", "en": "Jap"},
+        "Russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "zh": "俄罗斯音阶", "en": "Russia"},
+        "Arabian": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "阿拉伯音阶", "en": "Arabian"},
+        "Oriental": {"pattern": "1,b2,3,4,b5,6,b7", "zh": "东方音阶", "en": "Oriental"},
+        "Spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "zh": "西班牙音阶", "en": "Spanish"},
     }
+
+    @classmethod
+    def find_scale_tag_by_scale_name(cls, name, lan):
+        for k, v in cls.scale_map.items():
+            if v[lan] == name:
+                return k
 
     @classmethod
     def make_chord(cls, chord_name):
@@ -159,11 +165,3 @@ class Theory:
             ret_single_notes.append(ret_note)
         return ret_single_notes, ret_multi_notes
 
-
-if __name__ == "__main__":
-    from pprint import pprint
-    pprint(TheoryUtil.make_chord("Dbm7b5"))
-    pprint(TheoryUtil.make_chord("Db7b9#11"))
-    pprint(TheoryUtil.make_scale("D#/blues"))
-    pprint(TheoryUtil.chord_in_scale(TheoryUtil.make_chord("CM7"), TheoryUtil.make_scale("C/natural_maj")))
-    pprint(TheoryUtil.find_scales_by_chord(TheoryUtil.make_chord("CM7")))
