@@ -5,23 +5,275 @@ from tkinter import ttk
 if platform.system() == "Darwin":
     from tkmacosx import *
 
-from theory import Theory
+
+def r_set_text(self, text):
+    self.r_text = text
 
 
-class GlobalState:
-    scale_root = "C"
-    scale_pattern = "Natural Maj"
-    chord_root = "C"
-    chord_pattern = "X"
-    chord_bass = "C"
+def r_get_text(self):
+    return getattr(self, "r_text")
+
+
+setattr(Button, "r_set_text", r_set_text)
+setattr(Button, "r_get_text", r_get_text)
+
+
+class Theory:
+    note_letters = "CDEFGAB" * 3
+    note_lst = ["C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"]
+    note_lst_x3 = note_lst * 3
+
+    simple_note_lst = ["1", "b2/#1", "2", "b3/#2", "3", "4", "b5/#4", "5", "b6/#5", "6", "b7/#6", "7"] + \
+                      ["-", "b9", "9", "#9", "-", "11", "#11", "-", "b13", "13", "-", "-"]
+
+    chord_map = {
+        "X": "1,3,5",
+        "Xm": "1,b3,5",
+        "Xaug": "1,3,#5",
+        "Xdim": "1,b3,b5",
+        "Xsus4": "1,4,5",
+        "Xsus2": "1,2,5",
+        "X6": "1,3,5,6",
+        "Xm6": "1,b3,5,6",
+        "XM7": "1,3,5,7",
+        "XmM7": "1,b3,5,7",
+        "X7": "1,3,5,b7",
+        "X7sus4": "1,4,5,b7",
+        "X7b9": "1,3,5,b7,b9",
+        "X7#9": "1,3,5,b7,#9",
+        "X7#11": "1,3,5,b7,#11",
+        "X7b13": "1,3,5,b7,b13",
+        "X7b9#9": "1,3,5,b7,b9,#9",
+        "X7b9#11": "1,3,5,b7,b9,#11",
+        "X7b9b13": "1,3,5,b7,b9,b13",
+        "X7#9#11": "1,3,5,b7,#9,#11",
+        "X7#9b13": "1,3,5,b7,#9,b13",
+        "X7#11b13": "1,3,5,b7,#11,b13",
+        "X7b9#9#11": "1,3,5,b7,b9,#9,#11",
+        "X7b9#9b13": "1,3,5,b7,b9,#9,b13",
+        "X7b9#11b13": "1,3,5,b7,b9,#11,b13",
+        "X7#9#11b13": "1,3,5,b7,#9,#11,b13",
+        "X7b9#9#11b13": "1,3,5,b7,b9,#9,#11,b13",
+        "Xm7": "1,b3,5,b7",
+        "Xm7b5": "1,b3,b5,b7",
+        "Xdim7": "1,b3,b5,6",
+        "Xaug7": "1,3,#5,7",
+        "X69": "1,3,5,6,9",
+        "Xm69": "1,b3,5,6,9",
+        "Xadd9": "1,3,5,9",
+        "XM9": "1,3,5,7,9",
+        "XmM9": "1,b3,5,7,9",
+        "X9": "1,3,5,b7,9",
+        "X9sus4": "1,4,5,b7,9",
+        "Xm9": "1,b3,5,b7,9",
+        "Xm9b5": "1,b3,b5,b7,9",
+        "Xaug9": "1,3,#5,b7,9",
+        "XaugM9": "1,3,#5,7,9",
+        "Xdim9": "1,b3,b5,6,9",
+        "X11": "1,3,5,b7,9,11",
+        "Xm11": "1,b3,5,b7,9,11",
+        "X13": "1,3,5,b7,9,11,13",
+    }
+
+    scale_map = {
+        "Natural Maj": {"pattern": "1,2,3,4,5,6,7", "zh": "自然大调", "en": "Natural Maj"},
+        "Harmonic Maj": {"pattern": "1,2,3,4,5,b6,7", "zh": "和声大调", "en": "Harmonic Maj"},
+        "Melodic Maj": {"pattern": "1,2,3,4,5,b6,b7", "zh": "旋律大调", "en": "Melodic Maj"},
+        "Natural Min": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "自然小调", "en": "Natural Min"},
+        "Harmonic Min": {"pattern": "1,2,b3,4,5,b6,7", "zh": "和声小调", "en": "Harmonic Min"},
+        "Melodic Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "旋律小调", "en": "Melodic Min"},
+        "Ionian": {"pattern": "1,2,3,4,5,6,7", "zh": "伊奥尼亚", "en": "Ionian"},
+        "Dorian": {"pattern": "1,2,b3,4,5,6,b7", "zh": "多利亚", "en": "Dorian"},
+        "Phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "zh": "弗里几亚", "en": "Phrygian"},
+        "Lydian": {"pattern": "1,2,3,#4,5,6,7", "zh": "利底亚", "en": "Lydian"},
+        "Mixolydian": {"pattern": "1,2,3,4,5,6,b7", "zh": "混合利底亚", "en": "Mixolydian"},
+        "Aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "爱奥尼亚", "en": "Aeolian"},
+        "Locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "zh": "洛克里亚", "en": "Locrian"},
+        "Whole Half Dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "zh": "全半减音阶", "en": "Whole Half Dim"},
+        "Half Whole Dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "zh": "半全减音阶", "en": "Half Whole Dim"},
+        "Diatonic": {"pattern": "1,2,3,#4,#5,#6", "zh": "全音阶", "en": "Diatonic"},
+        "Blues": {"pattern": "1,b3,4,b5,5,b7", "zh": "布鲁斯", "en": "Blues"},
+        "Mix Blues": {"pattern": "1,b3,3,4,b5,5,b7", "zh": "混合布鲁斯", "en": "Mix Blues"},
+        "Aux Blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "zh": "辅助布鲁斯", "en": "Aux Blues"},
+        "Jazz Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "爵士小音阶", "en": "Jazz Min"},
+        "Blues Maj": {"pattern": "1,2,b3,4,b5,b6,7", "zh": "蓝调大音阶", "en": "Blues Maj"},
+        "Phrygian Dominant": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "大弗里几亚", "en": "Phrygian Dominant"},
+        "Lydian Dominant": {"pattern": "1,2,3,#4,5,6,b7", "zh": "大利底亚", "en": "Lydian Dominant"},
+        "Super Locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "zh": "超级洛克里亚", "en": "Super Locrian"},
+        "Gypsy": {"pattern": "1,b3,#4,5,b6,b7", "zh": "吉普赛音阶", "en": "Gypsy"},
+        "Hungarian Maj": {"pattern": "1,#2,3,#4,5,6,b7", "zh": "匈牙利大音阶", "en": "Hungarian Maj"},
+        "Hungarian Min": {"pattern": "1,2,b3,#4,5,b6,7", "zh": "匈牙利小音阶", "en": "Hungarian Min"},
+        "Bibop": {"pattern": "1,2,3,4,5,6,b7,7", "zh": "比波普属音阶", "en": "Bibop"},
+        "India": {"pattern": "1,2,3,4,5,b6,b7", "zh": "印度音阶", "en": "India"},
+        "Jap": {"pattern": "1,3,4,6,7", "zh": "日本音阶", "en": "Jap"},
+        "Russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "zh": "俄罗斯音阶", "en": "Russia"},
+        "Arabian": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "阿拉伯音阶", "en": "Arabian"},
+        "Oriental": {"pattern": "1,b2,3,4,b5,6,b7", "zh": "东方音阶", "en": "Oriental"},
+        "Spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "zh": "西班牙音阶", "en": "Spanish"},
+    }
+
+    @classmethod
+    def find_scale_tag_by_scale_name(cls, name, lan):
+        for k, v in cls.scale_map.items():
+            if v[lan] == name:
+                return k
+
+    @classmethod
+    def make_chord(cls, chord_name):
+        if len(chord_name) >= 2 and chord_name[1] in "b#":
+            root = chord_name[:2]
+            chord_tag = "X" + chord_name[2:]
+            if chord_tag not in cls.chord_map:
+                raise Exception("chord not support.")
+            return cls.parse(root, cls.chord_map[chord_tag])
+        else:
+            root = chord_name[0]
+            chord_tag = "X" + chord_name[1:]
+            if chord_tag not in cls.chord_map:
+                raise Exception("chord not support.")
+            return cls.parse(root, cls.chord_map[chord_tag])
+
+    @classmethod
+    def make_scale(cls, scale_name):
+        # scale_tag example: D#/blues
+        root, tag = scale_name.split("/")
+        if tag not in cls.scale_map:
+            raise Exception("scale not support.")
+        return cls.parse(root, cls.scale_map[tag]["pattern"])
+
+    @classmethod
+    def chord_in_scale(cls, chord_name, scale_name):
+        chord = cls.make_chord(chord_name)
+        scale = cls.make_scale(scale_name)
+        return all([bool(x in scale[1]) for x in chord[1]])
+
+    @classmethod
+    def find_scales_by_chord(cls, chord_name):
+        chord = cls.make_chord(chord_name)
+        scales = []
+        for notes in cls.note_lst:
+            for note in notes.split("/"):
+                for tag, val in cls.scale_map.items():
+                    tmp_scale = cls.make_scale(f"{note}/tag")
+                    if all([bool(x in tmp_scale[1]) for x in chord[1]]):
+                        scales.append({
+                            "root": note,
+                            "tag": tag,
+                            "notes": tmp_scale,
+                        })
+        return scales
+
+    @classmethod
+    def note_index(cls, lst, target):
+        for idx, ele in enumerate(lst):
+            if target in ele.split("/"):
+                return idx
+
+    @classmethod
+    def parse(cls, root, pattern):
+        root_start = cls.note_index(cls.note_lst_x3, root)
+        root_letter = root.strip("#b")
+        root_letter_start = cls.note_letters.index(root_letter)
+        ret_multi_notes = []
+        ret_single_notes = []
+        for s_note in pattern.split(","):
+            note = cls.note_lst_x3[root_start + cls.note_index(cls.simple_note_lst, s_note)]
+            ret_multi_notes.append(note)
+            name = cls.note_letters[root_letter_start + int(s_note.strip("#b")) - 1]
+            ret_note = note
+            for n in note.split('/'):
+                if n.strip("#b") == name:
+                    ret_note = n
+                    break
+            ret_single_notes.append(ret_note)
+        return ret_single_notes, ret_multi_notes
+
+
+class GlobalStateClz:
+    _scale_root = "C"
+    _scale_pattern = "Natural Maj"
+    _chord_root = "C"
+    _chord_pattern = "X"
+    _chord_bass = "C"
+
+    _instance = None
+
+    def __new__(cls, *args, **kwargs):
+        if cls._instance is None:
+            cls._instance = super().__new__(cls)
+        return cls._instance
+
+    @property
+    def scale_root(self):
+        return self._scale_root
+
+    @scale_root.setter
+    def scale_root(self, value):
+        refresh = False
+        if value != self._scale_root:
+            refresh = True
+        self._scale_root = value
+        if refresh:
+            app.refresh()
+
+    @property
+    def scale_pattern(self):
+        return self._scale_pattern
+
+    @scale_pattern.setter
+    def scale_pattern(self, value):
+        refresh = False
+        if value != self._scale_pattern:
+            refresh = True
+        self._scale_pattern = value
+        if refresh:
+            app.refresh()
+
+    @property
+    def chord_root(self):
+        return self._chord_root
+
+    @chord_root.setter
+    def chord_root(self, value):
+        refresh = False
+        if value != self._chord_root:
+            refresh = True
+        self._chord_root = value
+        if refresh:
+            app.refresh()
+
+    @property
+    def chord_pattern(self):
+        return self._chord_pattern
+
+    @chord_pattern.setter
+    def chord_pattern(self, value):
+        refresh = False
+        if value != self._chord_pattern:
+            refresh = True
+        self._chord_pattern = value
+        if refresh:
+            app.refresh()
+
+    @property
+    def chord_bass(self):
+        return self._chord_bass
+
+    @chord_bass.setter
+    def chord_bass(self, value):
+        refresh = False
+        if value != self._chord_bass:
+            refresh = True
+        self._chord_bass = value
+        if refresh:
+            app.refresh()
+
+
+GlobalState = GlobalStateClz()
 
 
 class GlobalSetting:
     lan = "zh"
-    # background_color = "gray"
-    # nice_btn_color = "pink"
-    # btn_color = "white"
-    # selected_color = "blue"
 
 
 class ChordRootNoteList(Frame):
@@ -30,7 +282,7 @@ class ChordRootNoteList(Frame):
         super().__init__(**kwargs)
 
         col_name = "和弦根音" if GlobalSetting.lan == "zh" else "Chord Root"
-        Button(self, text=col_name, bg="gray").pack(side=TOP, fill=BOTH, expand=YES)
+        Label(self, text=col_name, bg="gray").pack(side=TOP)
 
         for i in range(12):
             btn = Button(self)
@@ -53,13 +305,12 @@ class ChordRootNoteList(Frame):
             if note == GlobalState.chord_root:
                 btn.configure(bg="blue", fg="white")
             btn.configure(text=note)
+            btn.r_set_text(note)
 
     def left_click(self, event):
-        note = event.widget.cnf.get("text")
+        note = event.widget.r_get_text()
         GlobalState.chord_root = note
         GlobalState.chord_bass = note
-        app.state_info.refresh()
-        self.refresh()
 
 
 class ChordBaseNoteList(Frame):
@@ -68,11 +319,12 @@ class ChordBaseNoteList(Frame):
         super().__init__(**kwargs)
 
         col_name = "和弦贝斯" if GlobalSetting.lan == "zh" else "Chord Bass"
-        Button(self, text=col_name, bg="gray").pack(side=TOP, fill=BOTH, expand=YES)
+        Label(self, text=col_name, bg="gray").pack(side=TOP)
 
         for i in range(12):
             btn = Button(self)
             btn.pack(side=TOP, fill=BOTH, expand=YES)
+            btn.bind("<Button-1>", self.left_click)
             setattr(self, f"bass_note_{i}", btn)
 
         self.refresh()
@@ -91,22 +343,78 @@ class ChordBaseNoteList(Frame):
             if note == GlobalState.chord_bass:
                 btn.configure(bg="blue", fg="white")
             btn.configure(text=note)
+            btn.r_set_text(note)
+
+    def left_click(self, event):
+        note = event.widget.r_get_text()
+        GlobalState.chord_bass = note
 
 
-class ChordList(Frame):
+class ChordGrid(Frame):
     def __init__(self, cols, **kwargs):
         super().__init__(**kwargs)
-        for i in range(len(Theory.chord_map)):
+
+        chord_num = len(Theory.chord_map)
+        for col_index in range(cols):
+            self.columnconfigure(col_index, weight=1)
+        for row_index in range(int(chord_num / cols) + 1):
+            self.rowconfigure(row_index, weight=1)
+
+        for i in range(chord_num):
             btn = Button(self)
-            btn.grid(column=i % cols, row=int(i / cols))
+            btn.bind("<Button-1>", self.left_click)
+            btn.grid(column=i % cols, row=int(i / cols), sticky="nesw")
             setattr(self, f"chord_{i}", btn)
 
         self.refresh()
 
     def refresh(self):
+        nice_chords = []
+        special_chords = []
+        for tag in Theory.chord_map.keys():
+            chord = tag.replace("X", GlobalState.chord_root)
+            if Theory.chord_in_scale(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}"):
+                nice_chords.append(chord)
+            else:
+                special_chords.append(chord)
+        chords = nice_chords + special_chords
         for i in range(len(Theory.chord_map)):
             btn = getattr(self, f"chord_{i}")
-            btn.configure(text=list(Theory.chord_map.keys())[i].replace("X", GlobalState.chord_root))
+            context = chords[i]
+            if context in nice_chords:
+                btn.configure(bg="pink", fg="black")
+            if context in special_chords:
+                btn.configure(bg="white", fg="black")
+            if context == GlobalState.chord_pattern.replace("X", GlobalState.chord_root):
+                btn.configure(bg="blue", fg="white")
+            btn.configure(text=context)
+            btn.r_set_text(context)
+
+    def left_click(self, event):
+        text = event.widget.r_get_text()
+        GlobalState.chord_pattern = text.replace(GlobalState.chord_root, "X")
+
+
+class ChordList(Frame):
+
+    def __init__(self, cols, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "和弦" if GlobalSetting.lan == "zh" else "Chord"
+        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=True)
+
+        self.chord_grid = ChordGrid(cols)
+        self.chord_grid.master = self
+        self.chord_grid.pack(side=BOTTOM, fill=BOTH, expand=True)
+        self.refresh()
+
+    def refresh(self):
+        self.chord_grid.refresh()
+
+
+class ChordDetail(Frame):
+    def __init__(self, cols, **kwargs):
+        super().__init__(**kwargs)
 
 
 class Piano(Frame):
@@ -176,13 +484,9 @@ class SelectMainScaleUi(Frame):
 
     def select_note(self, event):
         GlobalState.scale_root = self.drop_down_note.get()
-        app.chord_root_note_list.refresh()
-        app.chord_bass_note_list.refresh()
 
     def select_scale(self, event):
         GlobalState.scale_pattern = Theory.find_scale_tag_by_scale_name(self.drop_down_scale.get(), GlobalSetting.lan)
-        app.chord_root_note_list.refresh()
-        app.chord_bass_note_list.refresh()
 
 
 class StateInfoUi(Frame):
@@ -236,7 +540,7 @@ class App:
     def __init__(self):
         self.app = Tk()
         self.app.title('rChord')
-        self.app.geometry("600x450+800+400")
+        self.app.geometry("800x600+800+400")
         self.build()
 
     def build(self):
@@ -248,25 +552,38 @@ class App:
         self.state_info.master = self.app
         self.state_info.pack(side=TOP, fill=BOTH, expand=False)
 
-        self.piano_aux_scale = Piano(3, bg="gray")
+        self.piano_aux_scale = Piano(3, bg="white")
         self.piano_aux_scale.master = self.app
-        self.piano_aux_scale.pack(side=BOTTOM, fill=BOTH, expand=True)
+        self.piano_aux_scale.pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        col_name = "辅助音阶图示" if GlobalSetting.lan == "zh" else "Aux Scale Display"
+        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=True)
 
         self.piano_chord = Piano(3, bg="white")
         self.piano_chord.master = self.app
-        self.piano_chord.pack(side=BOTTOM, fill=BOTH, expand=True)
+        self.piano_chord.pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        col_name = "和弦图示" if GlobalSetting.lan == "zh" else "Chord Display"
+        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=True)
 
         self.chord_root_note_list = ChordRootNoteList()
         self.chord_root_note_list.master = self.app
-        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=True)
+        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
+
+        self.chord_bass_note_list = ChordBaseNoteList()
+        self.chord_bass_note_list.master = self.app
+        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
 
         self.chord_list = ChordList(5)
         self.chord_list.master = self.app
         self.chord_list.pack(side=LEFT, fill=BOTH, expand=True)
 
-        self.chord_bass_note_list = ChordBaseNoteList()
-        self.chord_bass_note_list.master = self.app
-        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=True)
+    def refresh(self):
+        self.select_main_scale.refresh()
+        self.chord_root_note_list.refresh()
+        self.chord_list.refresh()
+        self.chord_bass_note_list.refresh()
+        self.state_info.refresh()
 
     def run(self):
         self.app.mainloop()
