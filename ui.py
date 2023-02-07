@@ -9,7 +9,7 @@ from kivy.properties import DictProperty
 from kivy.uix.label import Label
 from kivy.uix.dropdown import DropDown
 
-from theory import TheoryUtil
+from theory import Theory
 
 
 class GlobalState:
@@ -76,9 +76,9 @@ class UiChordRootNoteList(GridLayout):
         self.cols = 1
         scale_note = GlobalState.scale_root
         scale_pattern = GlobalState.scale_pattern
-        note_start = TheoryUtil.note_lst_x3.index(scale_note)
-        loop_notes = TheoryUtil.note_lst_x3[note_start:note_start+12]
-        nice_notes = TheoryUtil.make_scale(f"{scale_note}/{scale_pattern}")[1]
+        note_start = Theory.note_lst_x3.index(scale_note)
+        loop_notes = Theory.note_lst_x3[note_start:note_start+12]
+        nice_notes = Theory.make_scale(f"{scale_note}/{scale_pattern}")[1]
         for note in loop_notes:
             nice_btn = False
             if note in nice_notes:
@@ -121,7 +121,7 @@ class UiChordBassNoteList(GridLayout):
         with self.canvas.before:
             Color(GlobalSetting.background_color)
         self.cols = 1
-        for note in TheoryUtil.note_lst:
+        for note in Theory.note_lst:
             nice_btn = False
             if note in nice_notes:
                 nice_btn = True
@@ -162,7 +162,7 @@ class UiChordList(GridLayout):
             Color(GlobalSetting.background_color)
         self.cols = cols
         # todo for chords
-        for note in TheoryUtil.note_lst:
+        for note in Theory.note_lst:
             nice_btn = False
             if note in nice_notes:
                 nice_btn = True
@@ -213,7 +213,7 @@ class UiChordSelectorPage(FloatLayout):
 
         # Select Scale Root
         note_drop = DropDown()
-        for note in TheoryUtil.note_lst:
+        for note in Theory.note_lst:
             note_name = ""
             if "/" not in note:
                 note_name = note
@@ -236,7 +236,7 @@ class UiChordSelectorPage(FloatLayout):
 
         # Select Scale Pattern
         scale_drop = DropDown()
-        for scale_name in TheoryUtil.scale_map.keys():
+        for scale_name in Theory.scale_map.keys():
             btn = Button(text=scale_name, size_hint_y=None, height=30)
             btn.bind(on_release=lambda btn: scale_drop.select(btn.text))
             scale_drop.add_widget(btn)

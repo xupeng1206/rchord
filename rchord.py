@@ -2,14 +2,55 @@ from tkinter import *
 from theory import Theory
 
 
+class GlobalState:
+    scale_root = "C"
+    scale_pattern = "Natural Maj"
+    chord_root = "C"
+    chord_pattern = "X"
+    chord_bass = "C"
+
+
 class ChordRootNoteList(Frame):
 
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        for i in range(10):
-            btn = Button(self, text=f"Button {i}")
-            btn.pack(fill=BOTH, expand=YES)
+        scale_root_index = Theory.note_lst_x3.index(GlobalState.scale_root)
+        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
+
+        for i in range(12):
+            nice = False
+            note = Theory.note_lst_x3[scale_root_index:scale_root_index+12][i]
+            if note in nice_notes:
+                nice = True
+            note = note.split("/")[0]
+            btn = Button(self, text=note)
+            if nice:
+                 btn.configure(bg="pink")
+            btn.pack(side=TOP, fill=BOTH, expand=YES)
+            setattr(self, f"note_{i}", btn)
+
+
+class ChordBaseNoteList(Frame):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        scale_root_index = Theory.note_lst_x3.index(GlobalState.scale_root)
+        nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
+
+        for i in range(12):
+            nice = False
+            note = Theory.note_lst_x3[scale_root_index:scale_root_index+12][i]
+            if note in nice_notes:
+                nice = True
+            note = note.split("/")[0]
+            btn = Button(self, text=note)
+            if nice:
+                 btn.configure(bg="pink")
+            btn.pack(side=TOP, fill=BOTH, expand=YES)
+            setattr(self, f"note_{i}", btn)
+
 
 
 class Piano(Frame):
@@ -62,6 +103,14 @@ class App:
         piano = Piano(3, bg="gray")
         piano.master = self.app
         piano.pack(side=TOP, fill=BOTH, expand=True)
+
+        chord_root_note_list = ChordRootNoteList()
+        chord_root_note_list.master = self.app
+        chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        chord_bass_note_list = ChordBaseNoteList()
+        chord_bass_note_list.master = self.app
+        chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=True)
 
     def run(self):
         self.app.mainloop()
