@@ -117,6 +117,7 @@ class Theory:
         pre_num = 0
         note_indexes = []
         for note in notes:
+            print(note)
             tmp_index = cls.note_index(cls.note_lst_x3[pre_num:], note)
             note_indexes.append(pre_num+tmp_index)
             pre_num = pre_num+tmp_index+1
@@ -308,7 +309,12 @@ class GlobalStateClz:
 
     @chord_voicing.setter
     def chord_voicing(self, value):
+        refresh = False
+        if value != self._chord_pattern:
+            refresh = True
         self._chord_voicing = value
+        if refresh:
+            app.main_piano.play([self._chord_bass]+self._chord_voicing.split(','))
 
     @property
     def chord_default_voicing(self):
@@ -336,10 +342,6 @@ class GlobalStateClz:
         notes = Theory.make_chord(chord)[0]
         self._chord_voicing = ",".join(notes)
         self._chord_default_voicing = ",".join(notes)
-
-    def play_main_piano(self):
-        notes = [self._chord_bass] + self._chord_voicing.split("/")
-        app.main_piano.play(notes)
 
     def play_aux_piano(self, notes):
         app.aux_piano.play(notes)
@@ -554,7 +556,11 @@ class ChordDetailAuxScales(Frame):
             pass
         if aux_scale is None:
             return
-        print(aux_scale)
+        note, scale = aux_scale.split("|")
+        note = note.strip()
+        scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
+        notes = Theory.make_scale(f"{note}/{scale}")[0]
+        GlobalState.play_aux_piano(notes)
         # todo play sound
 
 
@@ -587,7 +593,8 @@ class ChordDetailAuxChords(Frame):
         if aux_chord is None:
             return
         # todo play sound
-        print(aux_chord)
+        notes = Theory.make_chord(aux_chord)[0]
+        GlobalState.play_aux_piano(notes)
 
 
 class ChordDetailBottom(Frame):
@@ -698,6 +705,10 @@ class Piano(Frame):
                     btn.configure(bg="black", fg="white")
 
         # make note to note with oct_index
+        note_pitched = Theory.notes_to_notes_pitched(notes)
+        for note in note_pitched[0]:
+            btn = getattr(self, note.split("/")[0])
+            btn.configure(bg="blue", fg="white")
 
 
 class SelectMainScaleUi(Frame):
@@ -793,6 +804,8 @@ class App:
         self.main_piano = Piano(3, bg="white", master=self.app)
         self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
 
+        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
+
         col_name = "和弦图示" if GlobalSetting.lan == "zh" else "Chord Display"
         Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
 
@@ -814,6 +827,8 @@ class App:
         self.chord_bass_note_list.refresh()
         self.chord_list.refresh()
         self.chord_detail.refresh()
+        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
+        self.aux_piano.play([])
 
     def run(self):
         self.app.mainloop()
