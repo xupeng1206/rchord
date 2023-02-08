@@ -218,6 +218,8 @@ class GlobalStateClz:
     _chord_root = "C"
     _chord_pattern = "X"
     _chord_bass = "C"
+    _chord_default_voicing = "C,E,G"
+    _chord_voicing = "C,E,G"
 
     _instance = None
 
@@ -263,6 +265,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_root = value
         if refresh:
+            self.chord_change()
             app.refresh()
 
     @property
@@ -276,7 +279,24 @@ class GlobalStateClz:
             refresh = True
         self._chord_pattern = value
         if refresh:
+            self.chord_change()
             app.refresh()
+
+    @property
+    def chord_voicing(self):
+        return self._chord_voicing
+
+    @chord_voicing.setter
+    def chord_voicing(self, value):
+        self._chord_voicing = value
+
+    @property
+    def chord_default_voicing(self):
+        return self._chord_default_voicing
+
+    # @chord_default_voicing.setter
+    # def chord_default_voicing(self, value):
+    #     self._chord_default_voicing = value
 
     @property
     def chord_bass(self):
@@ -290,6 +310,12 @@ class GlobalStateClz:
         self._chord_bass = value
         if refresh:
             app.refresh()
+
+    def chord_change(self):
+        chord = self._chord_pattern.replace("X", self._chord_root)
+        notes = Theory.make_chord(chord)[0]
+        self._chord_voicing = ",".join(notes)
+        self._chord_default_voicing = ",".join(notes)
 
 
 GlobalState = GlobalStateClz()
@@ -305,7 +331,7 @@ class ChordRootNoteList(Frame):
         super().__init__(**kwargs)
 
         col_name = "和弦根音" if GlobalSetting.lan == "zh" else "Chord Root"
-        Label(self, text=col_name, bg="gray").pack(side=TOP)
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
         for i in range(12):
             btn = Button(self)
@@ -334,6 +360,7 @@ class ChordRootNoteList(Frame):
         note = event.widget.r_get_text()
         GlobalState.chord_root = note
         GlobalState.chord_bass = note
+        # todo play sound
 
 
 class ChordBaseNoteList(Frame):
@@ -342,7 +369,7 @@ class ChordBaseNoteList(Frame):
         super().__init__(**kwargs)
 
         col_name = "和弦贝斯" if GlobalSetting.lan == "zh" else "Chord Bass"
-        Label(self, text=col_name, bg="gray").pack(side=TOP)
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
         for i in range(12):
             btn = Button(self)
@@ -371,6 +398,7 @@ class ChordBaseNoteList(Frame):
     def left_click(self, event):
         note = event.widget.r_get_text()
         GlobalState.chord_bass = note
+        # todo play sound
 
 
 class ChordGrid(Frame):
@@ -416,6 +444,7 @@ class ChordGrid(Frame):
     def left_click(self, event):
         text = event.widget.r_get_text()
         GlobalState.chord_pattern = text.replace(GlobalState.chord_root, "X")
+        # todo play sound
 
 
 class ChordList(Frame):
@@ -448,8 +477,25 @@ class ChordDetailVoicing(Frame):
         self.voicing_entry = Entry(self)
         self.voicing_entry.pack(side=LEFT, fill=X, expand=True)
 
+        context = "试听" if GlobalSetting.lan == "zh" else "Listen"
+        self.listen_btn = Button(self, text=context)
+        self.listen_btn.bind("<Button-1>", self.listen_btn_left_click)
+        self.listen_btn.pack(side=LEFT, fill=X, expand=False)
+
     def refresh(self):
         self.bass.configure(text=GlobalState.chord_bass)
+        self.voicing_entry.delete(0, len(self.voicing_entry.get()))
+        self.voicing_entry.insert(0, GlobalState.chord_voicing)
+
+    def listen_btn_left_click(self, event):
+        voicing = self.voicing_entry.get()
+        if set(voicing.split(',')) - set(GlobalState.chord_default_voicing.split(",")):
+            # voicing error
+            self.voicing_entry.delete(0, len(self.voicing_entry.get()))
+            self.voicing_entry.insert(0, GlobalState.chord_voicing)
+        else:
+            GlobalState.chord_voicing = voicing
+        # todo play sound
 
 
 class ChordDetailAuxScales(Frame):
@@ -459,19 +505,30 @@ class ChordDetailAuxScales(Frame):
         col_name = "辅助音阶" if GlobalSetting.lan == "zh" else "Aux Scales"
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
-        self.aux_list = Listbox(self)
-        self.aux_list.pack(side=TOP, fill=BOTH, expand=True)
-
-        self.refresh()
+        self.aux_scale_list = Listbox(self)
+        self.aux_scale_list.bind("<<ListboxSelect>>", self.aux_scale_list_select)
+        self.aux_scale_list.pack(side=TOP, fill=BOTH, expand=True)
 
     def refresh(self):
-        if self.aux_list.size() > 0:
-            self.aux_list.delete(0, self.aux_list.size())
+        if self.aux_scale_list.size() > 0:
+            self.aux_scale_list.delete(0, self.aux_scale_list.size())
         chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         scales = Theory.find_scales_by_chord(chord)
         for idx, scale in enumerate(scales):
             note, tag = scale.split("/")
-            self.aux_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
+            self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
+
+    def aux_scale_list_select(self, event):
+        aux_scale = None
+        try:
+            index = self.aux_scale_list.curselection()
+            aux_scale = self.aux_scale_list.get(index)
+        except Exception:
+            pass
+        if aux_scale is None:
+            return
+        print(aux_scale)
+        # todo play sound
 
 
 class ChordDetailAuxChords(Frame):
@@ -481,18 +538,29 @@ class ChordDetailAuxChords(Frame):
         col_name = "辅助和弦" if GlobalSetting.lan == "zh" else "Aux Chords"
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
-        self.aux_list = Listbox(self)
-        self.aux_list.pack(side=TOP, fill=BOTH, expand=True)
-
-        self.refresh()
+        self.aux_chord_list = Listbox(self)
+        self.aux_chord_list.bind("<<ListboxSelect>>", self.aux_chord_list_select)
+        self.aux_chord_list.pack(side=TOP, fill=BOTH, expand=True)
 
     def refresh(self):
-        if self.aux_list.size() > 0:
-            self.aux_list.delete(0, self.aux_list.size())
+        if self.aux_chord_list.size() > 0:
+            self.aux_chord_list.delete(0, self.aux_chord_list.size())
         target_chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         chords = Theory.find_similar_chord(target_chord)
         for idx, chord in enumerate(chords):
-            self.aux_list.insert(idx, chord)
+            self.aux_chord_list.insert(idx, chord)
+
+    def aux_chord_list_select(self, event):
+        aux_chord = None
+        try:
+            index = self.aux_chord_list.curselection()
+            aux_chord = self.aux_chord_list.get(index)
+        except Exception:
+            pass
+        if aux_chord is None:
+            return
+        # todo play sound
+        print(aux_chord)
 
 
 class ChordDetailBottom(Frame):
@@ -504,8 +572,6 @@ class ChordDetailBottom(Frame):
 
         self.aux_chord_list = ChordDetailAuxChords(master=self)
         self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.refresh()
 
     def refresh(self):
         self.aux_scale_list.refresh()
@@ -520,7 +586,12 @@ class ChordDetailAll(Frame):
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
         self.voicing = ChordDetailVoicing(master=self)
-        self.voicing.pack(side=TOP, fill=X, padx=10, pady=10)
+        self.voicing.pack(side=TOP, fill=X)
+
+        context = "插入" if GlobalSetting.lan == "zh" else "Insert"
+        self.insert_btn = Button(self, text=context)
+        self.insert_btn.bind("<Button-1>", self.insert_btn_left_click)
+        self.insert_btn.pack(side=TOP, fill=X, expand=False)
 
         self.listbox = ChordDetailBottom(master=self)
         self.listbox.pack(side=TOP, fill=BOTH, expand=True)
@@ -530,6 +601,10 @@ class ChordDetailAll(Frame):
     def refresh(self):
         self.voicing.refresh()
         self.listbox.refresh()
+
+    def insert_btn_left_click(self, event):
+        # todo insert item to daw
+        pass
 
 
 class Piano(Frame):
@@ -591,23 +666,6 @@ class SelectMainScaleUi(Frame):
         self.drop_down_scale.bind("<<ComboboxSelected>>", self.select_scale)
         self.drop_down_scale.pack(side=LEFT, fill=BOTH, expand=YES)
 
-        self.refresh()
-
-    def refresh(self):
-        self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
-        self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
-
-    def select_note(self, event):
-        GlobalState.scale_root = self.drop_down_note.get()
-
-    def select_scale(self, event):
-        GlobalState.scale_pattern = Theory.find_scale_tag_by_scale_name(self.drop_down_scale.get(), GlobalSetting.lan)
-
-
-class StateInfoUi(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
         self.scale_pattern_label = Label(self)
         self.scale_pattern_label.pack(side=LEFT, fill=BOTH, expand=YES)
 
@@ -623,6 +681,9 @@ class StateInfoUi(Frame):
         self.refresh()
 
     def refresh(self):
+        self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
+        self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
+
         label_context = "模式: " if GlobalSetting.lan == "zh" else "Pattern: "
         self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern]["pattern"])
 
@@ -636,12 +697,18 @@ class StateInfoUi(Frame):
             chord = chord + "/" + GlobalState.chord_bass
         self.scale_chord_label.configure(text=label_context + chord)
 
-        label_context = "排列: " if GlobalSetting.lan == "zh" else "Voicing: "
+        label_context = "和弦音: " if GlobalSetting.lan == "zh" else "Chord Notes: "
         chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         voicing = ','.join(Theory.make_chord(chord)[0])
         if GlobalState.chord_bass != GlobalState.chord_root:
             voicing = GlobalState.chord_bass + "," + voicing
         self.scale_voicing_label.configure(text=label_context + voicing)
+
+    def select_note(self, event):
+        GlobalState.scale_root = self.drop_down_note.get()
+
+    def select_scale(self, event):
+        GlobalState.scale_pattern = Theory.find_scale_tag_by_scale_name(self.drop_down_scale.get(), GlobalSetting.lan)
 
 
 class App:
@@ -661,9 +728,6 @@ class App:
     def build(self):
         self.select_main_scale = SelectMainScaleUi(master=self.app)
         self.select_main_scale.pack(side=TOP, fill=BOTH, expand=False)
-
-        self.state_info = StateInfoUi(master=self.app)
-        self.state_info.pack(side=TOP, fill=BOTH, expand=False)
 
         self.piano_aux_scale = Piano(3, bg="white", master=self.app)
         self.piano_aux_scale.pack(side=BOTTOM, fill=BOTH, expand=False)
@@ -687,11 +751,10 @@ class App:
         self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
 
         self.chord_detail = ChordDetailAll(master=self.app)
-        self.chord_detail.pack(side=LEFT, fill=BOTH, expand=True)
+        self.chord_detail.pack(side=LEFT, fill=BOTH, expand=False)
 
     def refresh(self):
         self.select_main_scale.refresh()
-        self.state_info.refresh()
         self.chord_root_note_list.refresh()
         self.chord_bass_note_list.refresh()
         self.chord_list.refresh()
