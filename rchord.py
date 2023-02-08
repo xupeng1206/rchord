@@ -668,7 +668,7 @@ class App:
         self.piano_aux_scale = Piano(3, bg="white", master=self.app)
         self.piano_aux_scale.pack(side=BOTTOM, fill=BOTH, expand=False)
 
-        col_name = "辅助音阶图示" if GlobalSetting.lan == "zh" else "Aux Scale Display"
+        col_name = "辅助图示" if GlobalSetting.lan == "zh" else "Aux Display"
         Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
 
         self.piano_chord = Piano(3, bg="white", master=self.app)
