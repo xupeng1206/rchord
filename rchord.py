@@ -160,6 +160,33 @@ class Theory:
         return scales
 
     @classmethod
+    def find_similar_chord(cls, chord_name):
+        chord = cls.make_chord(chord_name)
+        if len(chord[1]) > 4:
+            return []
+        ret = []
+        similar_chords = {}
+        for notes in cls.note_lst:
+            for note in notes.split("/"):
+                for chord_tag, chord_pattern in cls.chord_map.items():
+                    if len(chord_pattern.split(",")) > 4:
+                        continue
+                    tmp_chord_name = chord_tag.replace("X", note)
+                    if tmp_chord_name == chord_name:
+                        continue
+                    tmp_chord = cls.make_chord(tmp_chord_name)
+                    same_notes = set(chord[1]) & set(tmp_chord[1])
+                    if len(same_notes) < 2:
+                        continue
+                    if len(same_notes) not in similar_chords:
+                        similar_chords[len(same_notes)] = []
+                    similar_chords[len(same_notes)].append(tmp_chord_name)
+        similar_chords = sorted(similar_chords.items(), key=lambda x: x[0])[::-1]
+        for chords in similar_chords:
+            ret = ret + chords[1]
+        return ret
+
+    @classmethod
     def note_index(cls, lst, target):
         for idx, ele in enumerate(lst):
             if target in ele.split("/"):
@@ -288,7 +315,7 @@ class ChordRootNoteList(Frame):
         self.refresh()
 
     def refresh(self):
-        scale_root_index = Theory.note_lst_x3.index(GlobalState.scale_root)
+        scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
         nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
         note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
         for i in range(12):
@@ -326,7 +353,7 @@ class ChordBaseNoteList(Frame):
         self.refresh()
 
     def refresh(self):
-        scale_root_index = Theory.note_lst_x3.index(GlobalState.scale_root)
+        scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
         nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
         note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
         for i in range(12):
@@ -438,6 +465,8 @@ class ChordDetailAuxScales(Frame):
         self.refresh()
 
     def refresh(self):
+        if self.aux_list.size() > 0:
+            self.aux_list.delete(0, self.aux_list.size())
         chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         scales = Theory.find_scales_by_chord(chord)
         for idx, scale in enumerate(scales):
@@ -458,7 +487,12 @@ class ChordDetailAuxChords(Frame):
         self.refresh()
 
     def refresh(self):
-        pass
+        if self.aux_list.size() > 0:
+            self.aux_list.delete(0, self.aux_list.size())
+        target_chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
+        chords = Theory.find_similar_chord(target_chord)
+        for idx, chord in enumerate(chords):
+            self.aux_list.insert(idx, chord)
 
 
 class ChordDetailBottom(Frame):
@@ -490,7 +524,6 @@ class ChordDetailAll(Frame):
 
         self.listbox = ChordDetailBottom(master=self)
         self.listbox.pack(side=TOP, fill=BOTH, expand=True)
-
 
         self.refresh()
 
@@ -543,7 +576,7 @@ class SelectMainScaleUi(Frame):
         label_context = "主音" if GlobalSetting.lan == "zh" else "Main Note"
         Label(self, text=label_context).pack(side=LEFT)
         self.drop_down_note = ttk.Combobox(self)
-        note_list = tuple([x[0] for x in Theory.note_lst])
+        note_list = tuple([x.split('/')[0] for x in Theory.note_lst])
         self.drop_down_note["value"] = note_list
         self.drop_down_note.bind("<<ComboboxSelected>>", self.select_note)
         self.drop_down_note.pack(side=LEFT, fill=BOTH, expand=YES)
@@ -561,7 +594,7 @@ class SelectMainScaleUi(Frame):
         self.refresh()
 
     def refresh(self):
-        self.drop_down_note.current(Theory.note_lst.index(GlobalState.scale_root))
+        self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
         self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
 
     def select_note(self, event):
@@ -656,13 +689,13 @@ class App:
         self.chord_detail = ChordDetailAll(master=self.app)
         self.chord_detail.pack(side=LEFT, fill=BOTH, expand=True)
 
-
     def refresh(self):
         self.select_main_scale.refresh()
-        self.chord_root_note_list.refresh()
-        self.chord_list.refresh()
-        self.chord_bass_note_list.refresh()
         self.state_info.refresh()
+        self.chord_root_note_list.refresh()
+        self.chord_bass_note_list.refresh()
+        self.chord_list.refresh()
+        self.chord_detail.refresh()
 
     def run(self):
         self.app.mainloop()
