@@ -113,6 +113,26 @@ class Theory:
     }
 
     @classmethod
+    def notes_to_notes_pitched(cls, notes):
+        pre_num = 0
+        note_indexes = []
+        for note in notes:
+            tmp_index = cls.note_index(cls.note_lst_x3[pre_num:], note)
+            note_indexes.append(pre_num+tmp_index)
+            pre_num = pre_num+tmp_index+1
+        notes_pitched = []
+        for idx in note_indexes:
+            pitch = int(idx/12)
+            note = cls.note_lst_x3[idx]
+            note_pitched = "/".join([x+str(pitch) for x in note.split("/")])
+            notes_pitched.append(note_pitched)
+        return notes_pitched, note_indexes
+
+    @classmethod
+    def notes_to_midi_indexes(cls, notes):
+        pass
+
+    @classmethod
     def find_scale_tag_by_scale_name(cls, name, lan):
         for k, v in cls.scale_map.items():
             if v[lan] == name:
