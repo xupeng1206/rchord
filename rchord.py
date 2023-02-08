@@ -265,7 +265,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_root = value
         if refresh:
-            self.chord_change()
+            self._chord_change()
             app.refresh()
 
     @property
@@ -279,7 +279,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_pattern = value
         if refresh:
-            self.chord_change()
+            self._chord_change()
             app.refresh()
 
     @property
@@ -311,11 +311,18 @@ class GlobalStateClz:
         if refresh:
             app.refresh()
 
-    def chord_change(self):
+    def _chord_change(self):
         chord = self._chord_pattern.replace("X", self._chord_root)
         notes = Theory.make_chord(chord)[0]
         self._chord_voicing = ",".join(notes)
         self._chord_default_voicing = ",".join(notes)
+
+    def play_main_piano(self):
+        notes = [self._chord_bass] + self._chord_voicing.split("/")
+        app.main_piano.play(notes)
+
+    def play_aux_piano(self, notes):
+        app.aux_piano.play(notes)
 
 
 GlobalState = GlobalStateClz()
@@ -611,6 +618,7 @@ class Piano(Frame):
 
     def __init__(self, oct_num, **kwargs):
         super().__init__(**kwargs)
+        self.oct_num = oct_num
         self.rowconfigure(0, weight=1)
         self.rowconfigure(1, weight=1)
         for col_index in range(oct_num * 14):
@@ -643,6 +651,33 @@ class Piano(Frame):
                     btn = Button(self, text="", bg="black", fg="white")
                     setattr(self, note, btn)
                     btn.grid(row=0, column=note_index + shift, columnspan=2, sticky="nesw", padx=1, pady=1)
+
+    def play(self, notes):
+        for oct_index in range(self.oct_num):
+            for note_index, note in enumerate(Theory.note_lst[:5]):
+                if note_index % 2 == 0:
+                    note = f'{note}{oct_index}'
+                    btn = getattr(self, note)
+                    btn.configure(bg="white", fg="black")
+                else:
+                    note = note.split('/')[0]
+                    note = f'{note}{oct_index}'
+                    btn = getattr(self, note)
+                    btn.configure(bg="black", fg="white")
+
+            for note_index, note in enumerate(Theory.note_lst[5:12]):
+                shift = 14 * oct_index + 6
+                if note_index % 2 == 0:
+                    note = f'{note}{oct_index}'
+                    btn = getattr(self, note)
+                    btn.configure(bg="white", fg="black")
+                else:
+                    note = note.split('/')[0]
+                    note = f'{note}{oct_index}'
+                    btn = getattr(self, note)
+                    btn.configure(bg="black", fg="white")
+
+        # make note to note with oct_index
 
 
 class SelectMainScaleUi(Frame):
@@ -729,14 +764,14 @@ class App:
         self.select_main_scale = SelectMainScaleUi(master=self.app)
         self.select_main_scale.pack(side=TOP, fill=BOTH, expand=False)
 
-        self.piano_aux_scale = Piano(3, bg="white", master=self.app)
-        self.piano_aux_scale.pack(side=BOTTOM, fill=BOTH, expand=False)
+        self.aux_piano = Piano(3, bg="white", master=self.app)
+        self.aux_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
 
         col_name = "辅助图示" if GlobalSetting.lan == "zh" else "Aux Display"
         Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
 
-        self.piano_chord = Piano(3, bg="white", master=self.app)
-        self.piano_chord.pack(side=BOTTOM, fill=BOTH, expand=False)
+        self.main_piano = Piano(3, bg="white", master=self.app)
+        self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
 
         col_name = "和弦图示" if GlobalSetting.lan == "zh" else "Chord Display"
         Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
