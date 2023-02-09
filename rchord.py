@@ -386,7 +386,7 @@ class ChordRootNoteList(Frame):
 
     def refresh(self):
         scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
-        nice_notes = GlobalState.scale_notes
+        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
         note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"root_note_{i}")
@@ -427,7 +427,7 @@ class ChordBaseNoteList(Frame):
 
     def refresh(self):
         scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
-        nice_notes = GlobalState.chord_default_voicing
+        nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
         note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"bass_note_{i}")
