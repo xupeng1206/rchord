@@ -5,6 +5,9 @@ from tkinter import ttk
 if platform.system() == "Darwin":
     from tkmacosx import *
 
+import reapy as rpy
+from reapy import reascript_api as rpi
+
 
 def r_set_text(self, text):
     self.r_text = text
@@ -129,10 +132,6 @@ class Theory:
         return notes_pitched, note_indexes
 
     @classmethod
-    def notes_to_midi_indexes(cls, notes):
-        pass
-
-    @classmethod
     def find_scale_tag_by_scale_name(cls, name, lan="en"):
         for k, v in cls.scale_map.items():
             if v[lan] == name:
@@ -235,11 +234,14 @@ class Theory:
 class GlobalStateClz:
     _scale_root = "C"
     _scale_pattern = "Natural Maj"
+    _scale_notes = "C,D,E,F,G,A,B"
     _chord_root = "C"
     _chord_pattern = "X"
     _chord_bass = "C"
     _chord_default_voicing = "C,E,G"
     _chord_voicing = "C,E,G"
+
+    _playing_note = []
 
     _instance = None
 
@@ -259,6 +261,7 @@ class GlobalStateClz:
             refresh = True
         self._scale_root = value
         if refresh:
+            self._scale_change()
             app.refresh()
 
     @property
@@ -272,6 +275,7 @@ class GlobalStateClz:
             refresh = True
         self._scale_pattern = value
         if refresh:
+            self._scale_change()
             app.refresh()
 
     @property
@@ -336,11 +340,27 @@ class GlobalStateClz:
         if refresh:
             app.refresh()
 
+    @property
+    def playing_note(self):
+        return self._playing_note
+
+    @playing_note.setter
+    def playing_note(self, value):
+        self._playing_note = value
+
+    @property
+    def scale_notes(self):
+        return self._scale_notes
+
     def _chord_change(self):
         chord = self._chord_pattern.replace("X", self._chord_root)
         notes = Theory.make_chord(chord)[0]
         self._chord_voicing = ",".join(notes)
         self._chord_default_voicing = ",".join(notes)
+
+    def _scale_change(self):
+        notes = Theory.make_scale(f"{self._scale_root}/{self._scale_pattern}")[0]
+        self._scale_notes = ",".join(notes)
 
     def play_aux_piano(self, notes):
         app.aux_piano.play(notes)
@@ -366,7 +386,7 @@ class ChordRootNoteList(Frame):
 
     def refresh(self):
         scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
-        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
+        nice_notes = GlobalState.scale_notes
         note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"root_note_{i}")
@@ -385,6 +405,8 @@ class ChordRootNoteList(Frame):
         GlobalState.chord_root = note
         GlobalState.chord_bass = note
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_root])
 
 
 class ChordBaseNoteList(Frame):
@@ -405,7 +427,7 @@ class ChordBaseNoteList(Frame):
 
     def refresh(self):
         scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
-        nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
+        nice_notes = GlobalState.chord_default_voicing
         note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"bass_note_{i}")
@@ -423,6 +445,8 @@ class ChordBaseNoteList(Frame):
         note = event.widget.r_get_text()
         GlobalState.chord_bass = note
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
 class ChordGrid(Frame):
@@ -469,6 +493,8 @@ class ChordGrid(Frame):
         text = event.widget.r_get_text()
         GlobalState.chord_pattern = text.replace(GlobalState.chord_root, "X")
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
 class ChordList(Frame):
@@ -520,6 +546,8 @@ class ChordDetailVoicing(Frame):
         else:
             GlobalState.chord_voicing = voicing
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
 class ChordDetailAuxScales(Frame):
@@ -558,7 +586,7 @@ class ChordDetailAuxScales(Frame):
         scale = scale.strip()
         notes = Theory.make_scale(f"{note}/{scale}")[0]
         GlobalState.play_aux_piano(notes)
-        # todo play sound
+        # todo play sound (not support)
 
 
 class ChordDetailAuxChords(Frame):
@@ -592,6 +620,8 @@ class ChordDetailAuxChords(Frame):
         # todo play sound
         notes = Theory.make_chord(aux_chord)[0]
         GlobalState.play_aux_piano(notes)
+        ReaperUtil.stop_play()
+        ReaperUtil.play(notes)
 
 
 class ChordDetailBottom(Frame):
@@ -635,7 +665,13 @@ class ChordDetailAll(Frame):
 
     def insert_btn_left_click(self, event):
         # todo insert item to daw
-        pass
+        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
+        if GlobalState.chord_root != GlobalState.chord_bass:
+            chord = chord + "/" + GlobalState.chord_bass
+        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}")
+        # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
 class Piano(Frame):
@@ -767,7 +803,7 @@ class StateInfoUi(Frame):
         self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern]["pattern"])
 
         label_context = "Notes: "
-        notes = ",".join(Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
+        notes = GlobalState.scale_notes
         self.scale_note_label.configure(text=label_context + notes)
 
         label_context = "Chord: "
@@ -777,9 +813,8 @@ class StateInfoUi(Frame):
         self.scale_chord_label.configure(text=label_context + chord)
 
         label_context = "Chord Notes: "
-        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        voicing = ','.join(Theory.make_chord(chord)[0])
-        if GlobalState.chord_bass != GlobalState.chord_root:
+        voicing = GlobalState.chord_voicing
+        if GlobalState.chord_bass != voicing[0]:
             voicing = GlobalState.chord_bass + "," + voicing
         self.scale_voicing_label.configure(text=label_context + voicing)
 
@@ -793,6 +828,7 @@ class App:
         return cls.instance
 
     def __init__(self):
+        ReaperUtil.stop_play_all()
         self.app = Tk()
         self.app.title('rChord')
         self.app.geometry("900x600+800+400")
@@ -843,6 +879,106 @@ class App:
 
     def run(self):
         self.app.mainloop()
+
+
+class ReaperUtil:
+
+    ChordTrackName = "__CHORD_TRACK__"
+    ChordTrackMeta = "__CHORD_META__"
+
+    @classmethod
+    def insert_chord_item(cls, chord, meta):
+        p = rpy.Project()
+        chord_track = None
+        meta_track = None
+        for t in p.tracks:
+            if t.name == cls.ChordTrackName:
+                chord_track = t
+            if t.name == cls.ChordTrackMeta:
+                meta_track = t
+            if all([chord_track, meta_track]):
+                break
+        if not meta_track:
+            meta_track = p.add_track(0, cls.ChordTrackMeta)
+        if not chord_track:
+            chord_track = p.add_track(0, cls.ChordTrackName)
+        end_pos = p.cursor_position+p.beats_to_time(4)
+        chord_item = chord_track.add_item(
+            start=p.cursor_position,
+            end=end_pos,
+        )
+        meta_item = meta_track.add_item(
+            start=p.cursor_position,
+            end=end_pos,
+        )
+
+        rpi.ULT_SetMediaItemNote(chord_item.id, chord)
+        rpi.ULT_SetMediaItemNote(meta_item.id, meta)
+        p.cursor_position = end_pos
+
+    @classmethod
+    def select_chord_item(cls):
+        p = rpy.Project()
+        chord_track = None
+        meta_track = None
+        for t in p.tracks:
+            if t.name == cls.ChordTrackName:
+                chord_track = t
+            if t.name == cls.ChordTrackMeta:
+                meta_track = t
+            if all([chord_track, meta_track]):
+                break
+        if not all([chord_track, meta_track]):
+            return
+        if chord_track.n_items != meta_track.n_items:
+            return
+        chord = None
+        select_idx = -1
+        for idx, item in enumerate(chord_track.items):
+            if item.is_selected:
+                select_idx = idx
+                chord = rpi.ULT_GetMediaItemNote(item.id)
+                break
+        if select_idx == -1:
+            return chord, None
+        meta = rpi.ULT_GetMediaItemNote(meta_track.items[select_idx].id)
+        return chord, meta
+
+    @classmethod
+    def play(cls, notes):
+        note_indexes = Theory.notes_to_notes_pitched(notes)[1]
+        notes = [x+36 for x in note_indexes]
+        cls._play(notes)
+
+    @classmethod
+    def _play(cls, notes):
+        keyboard_mode = 0  # virtualKeyboardMode
+        channel = 0
+        note_on = 0x90 + channel
+        velocity = 96
+        for note in notes:
+            rpi.StuffMIDIMessage(keyboard_mode, note_on, note, velocity)
+        GlobalState.playing_note = GlobalState.playing_note + notes
+
+    @classmethod
+    def stop_play(cls):
+        keyboard_mode = 0  # virtualKeyboardMode
+        channel = 0
+        note_off = 0x80 + channel
+        velocity = 0
+        for note in GlobalState.playing_note:
+            rpi.StuffMIDIMessage(keyboard_mode, note_off, note, velocity)
+        GlobalState.playing_note = []
+
+    @classmethod
+    def stop_play_all(cls):
+        keyboard_mode = 0  # virtualKeyboardMode
+        channel = 0
+        note_off = 0x80 + channel
+        velocity = 0
+        for note in range(0, 128):
+            rpi.StuffMIDIMessage(keyboard_mode, note_off, note, velocity)
+        GlobalState.playing_note = []
 
 
 if __name__ == "__main__":
