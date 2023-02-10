@@ -1,9 +1,5 @@
-import platform
 from tkinter import *
 from tkinter import ttk
-
-if platform.system() == "Darwin":
-    from tkmacosx import *
 
 import reapy as rpy
 from reapy import reascript_api as rpi
@@ -259,6 +255,7 @@ class GlobalStateClz:
     _chord_default_voicing = "C,E,G"
     _chord_voicing = "C,E,G"
     _analyse_chord = ""
+    _oct = 0
 
     _playing_note = []
 
@@ -268,6 +265,14 @@ class GlobalStateClz:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    @property
+    def oct(self):
+        return self._oct
+
+    @oct.setter
+    def oct(self, value):
+        self._oct = value
 
     @property
     def scale_root(self):
@@ -689,23 +694,33 @@ class SelectMainScaleUi(Frame):
         Label(self, text=label_context).pack(side=LEFT)
 
         self.drop_down_scale = ttk.Combobox(self)
-        # scale_list = tuple([x["zh"] for x in Theory.scale_map.values()]) if GlobalSetting.lan == "zh" \
-        #     else tuple([x["en"] for x in Theory.scale_map.values()])
         scale_list = tuple(Theory.scale_map.keys())
         self.drop_down_scale["value"] = scale_list
         self.drop_down_scale.bind("<<ComboboxSelected>>", self.select_scale)
         self.drop_down_scale.pack(side=LEFT, fill=BOTH, expand=YES)
 
+        label_context = "Oct"
+        Label(self, text=label_context).pack(side=LEFT)
+
+        self.drop_down_oct = ttk.Combobox(self)
+        oct_list = tuple([-1, 0, 1])
+        self.drop_down_oct["value"] = oct_list
+        self.drop_down_oct.bind("<<ComboboxSelected>>", self.select_oct)
+        self.drop_down_oct.pack(side=LEFT, fill=BOTH, expand=YES)
+
     def refresh(self):
         self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
         self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
+        self.drop_down_oct.current([-1, 0, 1].index(GlobalState.oct))
 
     def select_note(self, event):
         GlobalState.scale_root = self.drop_down_note.get()
 
     def select_scale(self, event):
-        # GlobalState.scale_pattern = Theory.find_scale_tag_by_scale_name(self.drop_down_scale.get(), GlobalSetting.lan)
         GlobalState.scale_pattern = self.drop_down_scale.get()
+
+    def select_oct(self, event):
+        GlobalState.oct = int(self.drop_down_oct.get())
 
 
 class StateInfoUi(Frame):
@@ -926,7 +941,9 @@ class App:
         ReaperUtil.stop_play_all()
         self.app = Tk()
         self.app.title('rChord')
-        self.app.geometry("900x600+800+400")
+        self.app.geometry("900x800+800+400")
+        self.app.bind("<KeyPress-Escape>", self.esc)
+        self.app.attributes('-topmost', 1)
 
         self.tabs = ttk.Notebook(self.app)
         self.tabs.pack(fill=BOTH, expand=True)
@@ -947,9 +964,11 @@ class App:
     def refresh(self):
         self.chord_selector.refresh()
 
+    def esc(self, event):
+        self.app.destroy()
+
 
 class ReaperUtil:
-
     ChordTrackName = "__CHORD_TRACK__"
     ChordTrackMeta = "__CHORD_META__"
 
@@ -969,7 +988,7 @@ class ReaperUtil:
             meta_track = p.add_track(0, cls.ChordTrackMeta)
         if not chord_track:
             chord_track = p.add_track(0, cls.ChordTrackName)
-        end_pos = p.cursor_position+p.beats_to_time(4)
+        end_pos = p.cursor_position + p.beats_to_time(4)
         chord_item = chord_track.add_item(
             start=p.cursor_position,
             end=end_pos,
@@ -1014,7 +1033,7 @@ class ReaperUtil:
     @classmethod
     def play(cls, notes):
         note_indexes = Theory.notes_to_notes_pitched(notes)[1]
-        notes = [x+36 for x in note_indexes]
+        notes = [x + 36 + GlobalState.oct * 12 for x in note_indexes]
         cls._play(notes)
 
     @classmethod
