@@ -22,9 +22,9 @@ setattr(Button, "r_get_text", r_get_text)
 
 
 class Theory:
-    note_letters = "CDEFGAB" * 3
+    note_letters = "CDEFGAB" * 4
     note_lst = ["C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"]
-    note_lst_x3 = note_lst * 3
+    note_lst_x4 = note_lst * 4
 
     simple_note_lst = ["1", "b2/#1", "2", "b3/#2", "3", "4", "b5/#4", "5", "b6/#5", "6", "b7/#6", "7"] + \
                       ["-", "b9", "9", "#9", "-", "11", "#11", "-", "b13", "13", "-", "-"]
@@ -120,14 +120,14 @@ class Theory:
         pre_num = 0
         note_indexes = []
         for note in notes:
-            tmp_index = cls.note_index(cls.note_lst_x3[pre_num:], note)
-            note_indexes.append(pre_num+tmp_index)
-            pre_num = pre_num+tmp_index+1
+            tmp_index = cls.note_index(cls.note_lst_x4[pre_num:], note)
+            note_indexes.append(pre_num + tmp_index)
+            pre_num = pre_num + tmp_index + 1
         notes_pitched = []
         for idx in note_indexes:
-            pitch = int(idx/12)
-            note = cls.note_lst_x3[idx]
-            note_pitched = "/".join([x+str(pitch) for x in note.split("/")])
+            pitch = int(idx / 12)
+            note = cls.note_lst_x4[idx]
+            note_pitched = "/".join([x + str(pitch) for x in note.split("/")])
             notes_pitched.append(note_pitched)
         return notes_pitched, note_indexes
 
@@ -162,25 +162,40 @@ class Theory:
 
     @classmethod
     def chord_in_scale(cls, chord_name, scale_name):
-        chord = cls.make_chord(chord_name)
-        scale = cls.make_scale(scale_name)
+        try:
+            chord = cls.make_chord(chord_name)
+        except Exception:
+            return False
+        try:
+            scale = cls.make_scale(scale_name)
+        except Exception:
+            return False
         return all([bool(x in scale[1]) for x in chord[1]])
 
     @classmethod
     def find_scales_by_chord(cls, chord_name):
-        chord = cls.make_chord(chord_name)
+        try:
+            chord = cls.make_chord(chord_name)
+        except Exception:
+            return []
         scales = []
         for notes in cls.note_lst:
             for note in notes.split("/"):
                 for tag, val in cls.scale_map.items():
-                    tmp_scale = cls.make_scale(f"{note}/{tag}")
+                    try:
+                        tmp_scale = cls.make_scale(f"{note}/{tag}")
+                    except Exception:
+                        continue
                     if all([bool(x in tmp_scale[1]) for x in chord[1]]):
                         scales.append(f"{note}/{tag}")
         return scales
 
     @classmethod
     def find_similar_chord(cls, chord_name):
-        chord = cls.make_chord(chord_name)
+        try:
+            chord = cls.make_chord(chord_name)
+        except Exception:
+            return []
         if len(chord[1]) > 4:
             return []
         ret = []
@@ -193,7 +208,10 @@ class Theory:
                     tmp_chord_name = chord_tag.replace("X", note)
                     if tmp_chord_name == chord_name:
                         continue
-                    tmp_chord = cls.make_chord(tmp_chord_name)
+                    try:
+                        tmp_chord = cls.make_chord(tmp_chord_name)
+                    except Exception:
+                        continue
                     same_notes = set(chord[1]) & set(tmp_chord[1])
                     if len(same_notes) < 2:
                         continue
@@ -213,13 +231,13 @@ class Theory:
 
     @classmethod
     def parse(cls, root, pattern):
-        root_start = cls.note_index(cls.note_lst_x3, root)
+        root_start = cls.note_index(cls.note_lst_x4, root)
         root_letter = root.strip("#b")
         root_letter_start = cls.note_letters.index(root_letter)
         ret_multi_notes = []
         ret_single_notes = []
         for s_note in pattern.split(","):
-            note = cls.note_lst_x3[root_start + cls.note_index(cls.simple_note_lst, s_note)]
+            note = cls.note_lst_x4[root_start + cls.note_index(cls.simple_note_lst, s_note)]
             ret_multi_notes.append(note)
             name = cls.note_letters[root_letter_start + int(s_note.strip("#b")) - 1]
             ret_note = note
@@ -240,6 +258,7 @@ class GlobalStateClz:
     _chord_bass = "C"
     _chord_default_voicing = "C,E,G"
     _chord_voicing = "C,E,G"
+    _analyse_chord = ""
 
     _playing_note = []
 
@@ -317,7 +336,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_voicing = value
         if refresh:
-            app.main_piano.play([self._chord_bass]+self._chord_voicing.split(','))
+            app.chord_selector.main_piano.play([self._chord_bass] + self._chord_voicing.split(','))
 
     @property
     def chord_default_voicing(self):
@@ -352,6 +371,19 @@ class GlobalStateClz:
     def scale_notes(self):
         return self._scale_notes
 
+    @property
+    def analyse_chord(self):
+        return self._analyse_chord
+
+    @analyse_chord.setter
+    def analyse_chord(self, value):
+        refresh = False
+        if value != self._analyse_chord:
+            refresh = True
+        self._analyse_chord = value
+        if refresh:
+            app.chord_analyser.refresh()
+
     def _chord_change(self):
         chord = self._chord_pattern.replace("X", self._chord_root)
         notes = Theory.make_chord(chord)[0]
@@ -363,7 +395,7 @@ class GlobalStateClz:
         self._scale_notes = ",".join(notes)
 
     def play_aux_piano(self, notes):
-        app.aux_piano.play(notes)
+        app.chord_analyser.aux_piano.play(notes)
 
 
 GlobalState = GlobalStateClz()
@@ -382,12 +414,11 @@ class ChordRootNoteList(Frame):
             btn.pack(side=TOP, fill=BOTH, expand=YES)
             btn.bind("<Button-1>", self.left_click)
             setattr(self, f"root_note_{i}", btn)
-        self.refresh()
 
     def refresh(self):
-        scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
+        scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
         nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
-        note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
+        note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"root_note_{i}")
             btn.configure(bg="white", fg="black")
@@ -423,12 +454,10 @@ class ChordBaseNoteList(Frame):
             btn.bind("<Button-1>", self.left_click)
             setattr(self, f"bass_note_{i}", btn)
 
-        self.refresh()
-
     def refresh(self):
-        scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
+        scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
         nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
-        note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
+        note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"bass_note_{i}")
             note = note_list[i]
@@ -465,8 +494,6 @@ class ChordGrid(Frame):
             btn.grid(column=i % cols, row=int(i / cols), sticky="nesw")
             setattr(self, f"chord_{i}", btn)
 
-        self.refresh()
-
     def refresh(self):
         nice_chords = []
         special_chords = []
@@ -497,7 +524,7 @@ class ChordGrid(Frame):
         ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
-class ChordList(Frame):
+class ChordSelectorMiddle(Frame):
 
     def __init__(self, cols, **kwargs):
         super().__init__(**kwargs)
@@ -505,12 +532,15 @@ class ChordList(Frame):
         col_name = "Chord"
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
+        self.voicing = ChordDetailVoicing(master=self)
+        self.voicing.pack(side=TOP, fill=X, expand=False)
+
         self.chord_grid = ChordGrid(cols, master=self)
         self.chord_grid.master = self
         self.chord_grid.pack(side=TOP, fill=BOTH, expand=True)
-        self.refresh()
 
     def refresh(self):
+        self.voicing.refresh()
         self.chord_grid.refresh()
 
 
@@ -532,6 +562,16 @@ class ChordDetailVoicing(Frame):
         self.listen_btn.bind("<Button-1>", self.listen_btn_left_click)
         self.listen_btn.pack(side=LEFT, fill=X, expand=False)
 
+        context = "Stop"
+        self.listen_btn = Button(self, text=context)
+        self.listen_btn.bind("<Button-1>", self.stop_btn_left_click)
+        self.listen_btn.pack(side=LEFT, fill=X, expand=False)
+
+        context = "Insert"
+        self.insert_btn = Button(self, text=context)
+        self.insert_btn.bind("<Button-1>", self.insert_btn_left_click)
+        self.insert_btn.pack(side=LEFT, fill=X, expand=False)
+
     def refresh(self):
         self.bass.configure(text=GlobalState.chord_bass)
         self.voicing_entry.delete(0, len(self.voicing_entry.get()))
@@ -549,119 +589,9 @@ class ChordDetailVoicing(Frame):
         ReaperUtil.stop_play()
         ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
-
-class ChordDetailAuxScales(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Aux Scales"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.aux_scale_list = Listbox(self)
-        self.aux_scale_list.bind("<<ListboxSelect>>", self.aux_scale_list_select)
-        self.aux_scale_list.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        if self.aux_scale_list.size() > 0:
-            self.aux_scale_list.delete(0, self.aux_scale_list.size())
-        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        scales = Theory.find_scales_by_chord(chord)
-        for idx, scale in enumerate(scales):
-            note, tag = scale.split("/")
-            # self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
-            self.aux_scale_list.insert(idx, f"{note} | {tag}")
-
-    def aux_scale_list_select(self, event):
-        aux_scale = None
-        try:
-            index = self.aux_scale_list.curselection()
-            aux_scale = self.aux_scale_list.get(index)
-        except Exception:
-            pass
-        if aux_scale is None:
-            return
-        note, scale = aux_scale.split("|")
-        note = note.strip()
-        # scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
-        scale = scale.strip()
-        notes = Theory.make_scale(f"{note}/{scale}")[0]
-        GlobalState.play_aux_piano(notes)
-        # todo play sound (not support)
-
-
-class ChordDetailAuxChords(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Aux Chords"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.aux_chord_list = Listbox(self)
-        self.aux_chord_list.bind("<<ListboxSelect>>", self.aux_chord_list_select)
-        self.aux_chord_list.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        if self.aux_chord_list.size() > 0:
-            self.aux_chord_list.delete(0, self.aux_chord_list.size())
-        target_chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        chords = Theory.find_similar_chord(target_chord)
-        for idx, chord in enumerate(chords):
-            self.aux_chord_list.insert(idx, chord)
-
-    def aux_chord_list_select(self, event):
-        aux_chord = None
-        try:
-            index = self.aux_chord_list.curselection()
-            aux_chord = self.aux_chord_list.get(index)
-        except Exception:
-            pass
-        if aux_chord is None:
-            return
+    def stop_btn_left_click(self, event):
         # todo play sound
-        notes = Theory.make_chord(aux_chord)[0]
-        GlobalState.play_aux_piano(notes)
-        ReaperUtil.stop_play()
-        ReaperUtil.play(notes)
-
-
-class ChordDetailBottom(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.aux_scale_list = ChordDetailAuxScales(master=self)
-        self.aux_scale_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.aux_chord_list = ChordDetailAuxChords(master=self)
-        self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-    def refresh(self):
-        self.aux_scale_list.refresh()
-        self.aux_chord_list.refresh()
-
-
-class ChordDetailAll(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Chord Detail"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.voicing = ChordDetailVoicing(master=self)
-        self.voicing.pack(side=TOP, fill=X)
-
-        context = "Insert"
-        self.insert_btn = Button(self, text=context)
-        self.insert_btn.bind("<Button-1>", self.insert_btn_left_click)
-        self.insert_btn.pack(side=TOP, fill=X, expand=False)
-
-        self.listbox = ChordDetailBottom(master=self)
-        self.listbox.pack(side=TOP, fill=BOTH, expand=True)
-
-        self.refresh()
-
-    def refresh(self):
-        self.voicing.refresh()
-        self.listbox.refresh()
+        ReaperUtil.stop_play_all()
 
     def insert_btn_left_click(self, event):
         # todo insert item to daw
@@ -766,8 +696,6 @@ class SelectMainScaleUi(Frame):
         self.drop_down_scale.bind("<<ComboboxSelected>>", self.select_scale)
         self.drop_down_scale.pack(side=LEFT, fill=BOTH, expand=YES)
 
-        self.refresh()
-
     def refresh(self):
         self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
         self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
@@ -796,8 +724,6 @@ class StateInfoUi(Frame):
         self.scale_voicing_label = Label(self)
         self.scale_voicing_label.pack(side=LEFT, fill=BOTH, expand=YES)
 
-        self.refresh()
-
     def refresh(self):
         label_context = "Pattern: "
         self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern]["pattern"])
@@ -819,6 +745,175 @@ class StateInfoUi(Frame):
         self.scale_voicing_label.configure(text=label_context + voicing)
 
 
+class Top(Frame):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.selector = SelectMainScaleUi(master=self)
+        self.selector.pack(side=TOP, fill=X, expand=False)
+
+        self.state_info = StateInfoUi(master=self)
+        self.state_info.pack(side=TOP, fill=X, expand=False)
+
+    def refresh(self):
+        self.selector.refresh()
+        self.state_info.refresh()
+
+
+class ChordSelector(Frame):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.top = Top(master=self)
+        self.top.pack(side=TOP, fill=BOTH, expand=False)
+
+        self.main_piano = Piano(4, bg="white", master=self)
+        self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
+
+        col_name = "Chord Display"
+        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        self.chord_root_note_list = ChordRootNoteList(master=self)
+        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
+
+        self.chord_map = ChordSelectorMiddle(5, master=self)
+        self.chord_map.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.chord_bass_note_list = ChordBaseNoteList(master=self)
+        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
+
+    def refresh(self):
+        self.top.refresh()
+        self.chord_root_note_list.refresh()
+        self.chord_bass_note_list.refresh()
+        self.chord_map.refresh()
+        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
+
+
+class ChordDetailAuxScales(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "Aux Scales"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.aux_scale_list = Listbox(self)
+        self.aux_scale_list.bind("<<ListboxSelect>>", self.aux_scale_list_select)
+        self.aux_scale_list.pack(side=TOP, fill=BOTH, expand=True)
+
+    def refresh(self):
+        if self.aux_scale_list.size() > 0:
+            self.aux_scale_list.delete(0, self.aux_scale_list.size())
+        chord = GlobalState.analyse_chord
+        scales = Theory.find_scales_by_chord(chord)
+        for idx, scale in enumerate(scales):
+            note, tag = scale.split("/")
+            # self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
+            self.aux_scale_list.insert(idx, f"{note} | {tag}")
+
+    def aux_scale_list_select(self, event):
+        aux_scale = None
+        try:
+            index = self.aux_scale_list.curselection()
+            aux_scale = self.aux_scale_list.get(index)
+        except Exception:
+            pass
+        if aux_scale is None:
+            return
+        note, scale = aux_scale.split("|")
+        note = note.strip()
+        # scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
+        scale = scale.strip()
+        notes = Theory.make_scale(f"{note}/{scale}")[0]
+        GlobalState.play_aux_piano(notes)
+        # todo play sound (not support)
+
+
+class ChordDetailAuxChords(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "Aux Chords"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.aux_chord_list = Listbox(self)
+        self.aux_chord_list.bind("<<ListboxSelect>>", self.aux_chord_list_select)
+        self.aux_chord_list.pack(side=TOP, fill=BOTH, expand=True)
+
+    def refresh(self):
+        if self.aux_chord_list.size() > 0:
+            self.aux_chord_list.delete(0, self.aux_chord_list.size())
+        target_chord = GlobalState.analyse_chord
+        chords = Theory.find_similar_chord(target_chord)
+        for idx, chord in enumerate(chords):
+            self.aux_chord_list.insert(idx, chord)
+
+    def aux_chord_list_select(self, event):
+        aux_chord = None
+        try:
+            index = self.aux_chord_list.curselection()
+            aux_chord = self.aux_chord_list.get(index)
+        except Exception:
+            pass
+        if aux_chord is None:
+            return
+        # todo play sound
+        notes = Theory.make_chord(aux_chord)[0]
+        GlobalState.play_aux_piano(notes)
+        ReaperUtil.stop_play()
+        ReaperUtil.play(notes)
+
+
+class ChordAnalyserTop(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.chord = Entry(self)
+        self.chord.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.analyser = Button(self, text="Analyser")
+        self.analyser.bind('<Button-1>', self.analyser_click)
+        self.analyser.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.analyser = Button(self, text="Stop")
+        self.analyser.bind('<Button-1>', self.stop_click)
+        self.analyser.pack(side=LEFT, fill=BOTH, expand=True)
+
+    def analyser_click(self, event):
+        GlobalState.analyse_chord = self.chord.get()
+
+    def stop_click(self, event):
+        # todo play sound
+        ReaperUtil.stop_play_all()
+
+
+class ChordAnalyser(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.top = ChordAnalyserTop(master=self)
+        self.top.pack(side=TOP, fill=BOTH, expand=False)
+
+        self.aux_piano = Piano(2, bg="white", master=self)
+        self.aux_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        col_name = "Aux Display"
+        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        self.aux_scale_list = ChordDetailAuxScales(master=self)
+        self.aux_scale_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.aux_chord_list = ChordDetailAuxChords(master=self)
+        self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+    def refresh(self):
+        self.aux_scale_list.refresh()
+        self.aux_chord_list.refresh()
+
+
 class App:
     instance = None
 
@@ -832,53 +927,25 @@ class App:
         self.app = Tk()
         self.app.title('rChord')
         self.app.geometry("900x600+800+400")
-        self.build()
 
-    def build(self):
-        self.select_main_scale = SelectMainScaleUi(master=self.app)
-        self.select_main_scale.pack(side=TOP, fill=BOTH, expand=False)
+        self.tabs = ttk.Notebook(self.app)
+        self.tabs.pack(fill=BOTH, expand=True)
 
-        self.state_info = StateInfoUi(master=self.app)
-        self.state_info.pack(side=TOP, fill=BOTH, expand=False)
+        self.chord_selector = ChordSelector(master=self.app)
+        self.chord_analyser = ChordAnalyser(master=self.app)
 
-        self.aux_piano = Piano(3, bg="white", master=self.app)
-        self.aux_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
+        self.tabs.add(self.chord_selector, text="ChordSelector")
+        self.tabs.select(self.tabs.tabs()[0])
+        self.tabs.add(self.chord_analyser, text="ChordAnalyser")
+        self.tabs.tabs()
 
-        col_name = "Aux Display"
-        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.main_piano = Piano(3, bg="white", master=self.app)
-        self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
-
-        col_name = "Chord Display"
-        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.chord_root_note_list = ChordRootNoteList(master=self.app)
-        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
-
-        self.chord_list = ChordList(5, master=self.app)
-        self.chord_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.chord_bass_note_list = ChordBaseNoteList(master=self.app)
-        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
-
-        self.chord_detail = ChordDetailAll(master=self.app)
-        self.chord_detail.pack(side=LEFT, fill=BOTH, expand=False)
-
-    def refresh(self):
-        self.select_main_scale.refresh()
-        self.state_info.refresh()
-        self.chord_root_note_list.refresh()
-        self.chord_bass_note_list.refresh()
-        self.chord_list.refresh()
-        self.chord_detail.refresh()
-        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
-        self.aux_piano.play([])
+        self.refresh()
 
     def run(self):
         self.app.mainloop()
+
+    def refresh(self):
+        self.chord_selector.refresh()
 
 
 class ReaperUtil:
