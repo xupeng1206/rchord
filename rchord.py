@@ -938,7 +938,7 @@ class App:
         return cls.instance
 
     def __init__(self):
-        ReaperUtil.stop_play_all()
+        ReaperUtil.parse_item()
         self.app = Tk()
         self.app.title('rChord')
         self.app.geometry("900x800+800+400")
@@ -971,6 +971,36 @@ class App:
 class ReaperUtil:
     ChordTrackName = "__CHORD_TRACK__"
     ChordTrackMeta = "__CHORD_META__"
+
+    @classmethod
+    def parse_item(cls):
+        ReaperUtil.stop_play_all()
+        chord, meta = ReaperUtil.select_chord_item()
+        if None in [chord, meta]:
+            return
+        if "/" in chord:
+            GlobalState._chord_bass = chord.split('/')[1]
+            chord = chord.split('/')[0]
+            GlobalState._scale_root = meta.split("/")[0]
+            GlobalState._scale_pattern = meta.split("/")[1]
+            GlobalState._chord_voicing = meta.split("/")[2]
+            chord_notes = Theory.make_chord(chord)[0]
+            GlobalState._chord_root = chord_notes[0]
+            GlobalState._chord_default_voicing = chord_notes
+            GlobalState._chord_pattern = chord.replace(GlobalState._chord_root, "X")
+            GlobalState._scale_notes = ",".join(
+                Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
+        else:
+            GlobalState._scale_root = meta.split("/")[0]
+            GlobalState._scale_pattern = meta.split("/")[1]
+            GlobalState._chord_voicing = meta.split("/")[2]
+            chord_notes = Theory.make_chord(chord)[0]
+            GlobalState._chord_root = chord_notes[0]
+            GlobalState._chord_bass = chord_notes[0]
+            GlobalState._chord_default_voicing = chord_notes
+            GlobalState._chord_pattern = chord.replace(GlobalState._chord_root, "X")
+            GlobalState._scale_notes = ",".join(
+                Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
 
     @classmethod
     def insert_chord_item(cls, chord, meta):
@@ -1015,9 +1045,9 @@ class ReaperUtil:
             if all([chord_track, meta_track]):
                 break
         if not all([chord_track, meta_track]):
-            return
+            return None, None
         if chord_track.n_items != meta_track.n_items:
-            return
+            return None, None
         chord = None
         select_idx = -1
         for idx, item in enumerate(chord_track.items):

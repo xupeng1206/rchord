@@ -1,10 +1,9 @@
-# zh not support in reaper
-import platform
+import time
 from tkinter import *
 from tkinter import ttk
 
-if platform.system() == "Darwin":
-    from tkmacosx import *
+import reapy as rpy
+from reapy import reascript_api as rpi
 
 
 def r_set_text(self, text):
@@ -20,9 +19,9 @@ setattr(Button, "r_get_text", r_get_text)
 
 
 class Theory:
-    note_letters = "CDEFGAB" * 3
+    note_letters = "CDEFGAB" * 4
     note_lst = ["C", "Db/C#", "D", "Eb/D#", "E", "F", "Gb/F#", "G", "Ab/G#", "A", "Bb/A#", "B"]
-    note_lst_x3 = note_lst * 3
+    note_lst_x4 = note_lst * 4
 
     simple_note_lst = ["1", "b2/#1", "2", "b3/#2", "3", "4", "b5/#4", "5", "b6/#5", "6", "b7/#6", "7"] + \
                       ["-", "b9", "9", "#9", "-", "11", "#11", "-", "b13", "13", "-", "-"]
@@ -77,40 +76,40 @@ class Theory:
     }
 
     scale_map = {
-        "Natural Maj": {"pattern": "1,2,3,4,5,6,7", "zh": "自然大调", "en": "Natural Maj"},
-        "Harmonic Maj": {"pattern": "1,2,3,4,5,b6,7", "zh": "和声大调", "en": "Harmonic Maj"},
-        "Melodic Maj": {"pattern": "1,2,3,4,5,b6,b7", "zh": "旋律大调", "en": "Melodic Maj"},
-        "Natural Min": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "自然小调", "en": "Natural Min"},
-        "Harmonic Min": {"pattern": "1,2,b3,4,5,b6,7", "zh": "和声小调", "en": "Harmonic Min"},
-        "Melodic Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "旋律小调", "en": "Melodic Min"},
-        "Ionian": {"pattern": "1,2,3,4,5,6,7", "zh": "伊奥尼亚", "en": "Ionian"},
-        "Dorian": {"pattern": "1,2,b3,4,5,6,b7", "zh": "多利亚", "en": "Dorian"},
-        "Phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "zh": "弗里几亚", "en": "Phrygian"},
-        "Lydian": {"pattern": "1,2,3,#4,5,6,7", "zh": "利底亚", "en": "Lydian"},
-        "Mixolydian": {"pattern": "1,2,3,4,5,6,b7", "zh": "混合利底亚", "en": "Mixolydian"},
-        "Aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "爱奥尼亚", "en": "Aeolian"},
-        "Locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "zh": "洛克里亚", "en": "Locrian"},
-        "Whole Half Dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "zh": "全半减音阶", "en": "Whole Half Dim"},
-        "Half Whole Dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "zh": "半全减音阶", "en": "Half Whole Dim"},
-        "Diatonic": {"pattern": "1,2,3,#4,#5,#6", "zh": "全音阶", "en": "Diatonic"},
-        "Blues": {"pattern": "1,b3,4,b5,5,b7", "zh": "布鲁斯", "en": "Blues"},
-        "Mix Blues": {"pattern": "1,b3,3,4,b5,5,b7", "zh": "混合布鲁斯", "en": "Mix Blues"},
-        "Aux Blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "zh": "辅助布鲁斯", "en": "Aux Blues"},
-        "Jazz Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "爵士小音阶", "en": "Jazz Min"},
-        "Blues Maj": {"pattern": "1,2,b3,4,b5,b6,7", "zh": "蓝调大音阶", "en": "Blues Maj"},
-        "Phrygian Dominant": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "大弗里几亚", "en": "Phrygian Dominant"},
-        "Lydian Dominant": {"pattern": "1,2,3,#4,5,6,b7", "zh": "大利底亚", "en": "Lydian Dominant"},
-        "Super Locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "zh": "超级洛克里亚", "en": "Super Locrian"},
-        "Gypsy": {"pattern": "1,b3,#4,5,b6,b7", "zh": "吉普赛音阶", "en": "Gypsy"},
-        "Hungarian Maj": {"pattern": "1,#2,3,#4,5,6,b7", "zh": "匈牙利大音阶", "en": "Hungarian Maj"},
-        "Hungarian Min": {"pattern": "1,2,b3,#4,5,b6,7", "zh": "匈牙利小音阶", "en": "Hungarian Min"},
-        "Bibop": {"pattern": "1,2,3,4,5,6,b7,7", "zh": "比波普属音阶", "en": "Bibop"},
-        "India": {"pattern": "1,2,3,4,5,b6,b7", "zh": "印度音阶", "en": "India"},
-        "Jap": {"pattern": "1,3,4,6,7", "zh": "日本音阶", "en": "Jap"},
-        "Russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "zh": "俄罗斯音阶", "en": "Russia"},
-        "Arabian": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "阿拉伯音阶", "en": "Arabian"},
-        "Oriental": {"pattern": "1,b2,3,4,b5,6,b7", "zh": "东方音阶", "en": "Oriental"},
-        "Spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "zh": "西班牙音阶", "en": "Spanish"},
+        "Natural Maj": {"pattern": "1,2,3,4,5,6,7", "zh": "", "en": "Natural Maj"},
+        "Harmonic Maj": {"pattern": "1,2,3,4,5,b6,7", "zh": "", "en": "Harmonic Maj"},
+        "Melodic Maj": {"pattern": "1,2,3,4,5,b6,b7", "zh": "", "en": "Melodic Maj"},
+        "Natural Min": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "", "en": "Natural Min"},
+        "Harmonic Min": {"pattern": "1,2,b3,4,5,b6,7", "zh": "", "en": "Harmonic Min"},
+        "Melodic Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "", "en": "Melodic Min"},
+        "Ionian": {"pattern": "1,2,3,4,5,6,7", "zh": "", "en": "Ionian"},
+        "Dorian": {"pattern": "1,2,b3,4,5,6,b7", "zh": "", "en": "Dorian"},
+        "Phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "zh": "", "en": "Phrygian"},
+        "Lydian": {"pattern": "1,2,3,#4,5,6,7", "zh": "", "en": "Lydian"},
+        "Mixolydian": {"pattern": "1,2,3,4,5,6,b7", "zh": "", "en": "Mixolydian"},
+        "Aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "", "en": "Aeolian"},
+        "Locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "zh": "", "en": "Locrian"},
+        "Whole Half Dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "zh": "", "en": "Whole Half Dim"},
+        "Half Whole Dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "zh": "", "en": "Half Whole Dim"},
+        "Diatonic": {"pattern": "1,2,3,#4,#5,#6", "zh": "", "en": "Diatonic"},
+        "Blues": {"pattern": "1,b3,4,b5,5,b7", "zh": "", "en": "Blues"},
+        "Mix Blues": {"pattern": "1,b3,3,4,b5,5,b7", "zh": "", "en": "Mix Blues"},
+        "Aux Blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "zh": "", "en": "Aux Blues"},
+        "Jazz Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "", "en": "Jazz Min"},
+        "Blues Maj": {"pattern": "1,2,b3,4,b5,b6,7", "zh": "", "en": "Blues Maj"},
+        "Phrygian Dominant": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "", "en": "Phrygian Dominant"},
+        "Lydian Dominant": {"pattern": "1,2,3,#4,5,6,b7", "zh": "", "en": "Lydian Dominant"},
+        "Super Locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "zh": "", "en": "Super Locrian"},
+        "Gypsy": {"pattern": "1,b3,#4,5,b6,b7", "zh": "", "en": "Gypsy"},
+        "Hungarian Maj": {"pattern": "1,#2,3,#4,5,6,b7", "zh": "", "en": "Hungarian Maj"},
+        "Hungarian Min": {"pattern": "1,2,b3,#4,5,b6,7", "zh": "", "en": "Hungarian Min"},
+        "Bibop": {"pattern": "1,2,3,4,5,6,b7,7", "zh": "", "en": "Bibop"},
+        "India": {"pattern": "1,2,3,4,5,b6,b7", "zh": "", "en": "India"},
+        "Jap": {"pattern": "1,3,4,6,7", "zh": "", "en": "Jap"},
+        "Russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "zh": "", "en": "Russia"},
+        "Arabian": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "", "en": "Arabian"},
+        "Oriental": {"pattern": "1,b2,3,4,b5,6,b7", "zh": "", "en": "Oriental"},
+        "Spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "zh": "", "en": "Spanish"},
     }
 
     @classmethod
@@ -118,23 +117,19 @@ class Theory:
         pre_num = 0
         note_indexes = []
         for note in notes:
-            tmp_index = cls.note_index(cls.note_lst_x3[pre_num:], note)
-            note_indexes.append(pre_num+tmp_index)
-            pre_num = pre_num+tmp_index+1
+            tmp_index = cls.note_index(cls.note_lst_x4[pre_num:], note)
+            note_indexes.append(pre_num + tmp_index)
+            pre_num = pre_num + tmp_index + 1
         notes_pitched = []
         for idx in note_indexes:
-            pitch = int(idx/12)
-            note = cls.note_lst_x3[idx]
-            note_pitched = "/".join([x+str(pitch) for x in note.split("/")])
+            pitch = int(idx / 12)
+            note = cls.note_lst_x4[idx]
+            note_pitched = "/".join([x + str(pitch) for x in note.split("/")])
             notes_pitched.append(note_pitched)
         return notes_pitched, note_indexes
 
     @classmethod
-    def notes_to_midi_indexes(cls, notes):
-        pass
-
-    @classmethod
-    def find_scale_tag_by_scale_name(cls, name, lan):
+    def find_scale_tag_by_scale_name(cls, name, lan="en"):
         for k, v in cls.scale_map.items():
             if v[lan] == name:
                 return k
@@ -164,25 +159,40 @@ class Theory:
 
     @classmethod
     def chord_in_scale(cls, chord_name, scale_name):
-        chord = cls.make_chord(chord_name)
-        scale = cls.make_scale(scale_name)
+        try:
+            chord = cls.make_chord(chord_name)
+        except Exception:
+            return False
+        try:
+            scale = cls.make_scale(scale_name)
+        except Exception:
+            return False
         return all([bool(x in scale[1]) for x in chord[1]])
 
     @classmethod
     def find_scales_by_chord(cls, chord_name):
-        chord = cls.make_chord(chord_name)
+        try:
+            chord = cls.make_chord(chord_name)
+        except Exception:
+            return []
         scales = []
         for notes in cls.note_lst:
             for note in notes.split("/"):
                 for tag, val in cls.scale_map.items():
-                    tmp_scale = cls.make_scale(f"{note}/{tag}")
+                    try:
+                        tmp_scale = cls.make_scale(f"{note}/{tag}")
+                    except Exception:
+                        continue
                     if all([bool(x in tmp_scale[1]) for x in chord[1]]):
                         scales.append(f"{note}/{tag}")
         return scales
 
     @classmethod
     def find_similar_chord(cls, chord_name):
-        chord = cls.make_chord(chord_name)
+        try:
+            chord = cls.make_chord(chord_name)
+        except Exception:
+            return []
         if len(chord[1]) > 4:
             return []
         ret = []
@@ -195,7 +205,10 @@ class Theory:
                     tmp_chord_name = chord_tag.replace("X", note)
                     if tmp_chord_name == chord_name:
                         continue
-                    tmp_chord = cls.make_chord(tmp_chord_name)
+                    try:
+                        tmp_chord = cls.make_chord(tmp_chord_name)
+                    except Exception:
+                        continue
                     same_notes = set(chord[1]) & set(tmp_chord[1])
                     if len(same_notes) < 2:
                         continue
@@ -215,13 +228,13 @@ class Theory:
 
     @classmethod
     def parse(cls, root, pattern):
-        root_start = cls.note_index(cls.note_lst_x3, root)
+        root_start = cls.note_index(cls.note_lst_x4, root)
         root_letter = root.strip("#b")
         root_letter_start = cls.note_letters.index(root_letter)
         ret_multi_notes = []
         ret_single_notes = []
         for s_note in pattern.split(","):
-            note = cls.note_lst_x3[root_start + cls.note_index(cls.simple_note_lst, s_note)]
+            note = cls.note_lst_x4[root_start + cls.note_index(cls.simple_note_lst, s_note)]
             ret_multi_notes.append(note)
             name = cls.note_letters[root_letter_start + int(s_note.strip("#b")) - 1]
             ret_note = note
@@ -236,11 +249,16 @@ class Theory:
 class GlobalStateClz:
     _scale_root = "C"
     _scale_pattern = "Natural Maj"
+    _scale_notes = "C,D,E,F,G,A,B"
     _chord_root = "C"
     _chord_pattern = "X"
     _chord_bass = "C"
     _chord_default_voicing = "C,E,G"
     _chord_voicing = "C,E,G"
+    _analyse_chord = ""
+    _oct = 0
+
+    _playing_note = []
 
     _instance = None
 
@@ -248,6 +266,14 @@ class GlobalStateClz:
         if cls._instance is None:
             cls._instance = super().__new__(cls)
         return cls._instance
+
+    @property
+    def oct(self):
+        return self._oct
+
+    @oct.setter
+    def oct(self, value):
+        self._oct = value
 
     @property
     def scale_root(self):
@@ -260,6 +286,7 @@ class GlobalStateClz:
             refresh = True
         self._scale_root = value
         if refresh:
+            self._scale_change()
             app.refresh()
 
     @property
@@ -273,6 +300,7 @@ class GlobalStateClz:
             refresh = True
         self._scale_pattern = value
         if refresh:
+            self._scale_change()
             app.refresh()
 
     @property
@@ -314,7 +342,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_voicing = value
         if refresh:
-            app.main_piano.play([self._chord_bass]+self._chord_voicing.split(','))
+            app.chord_selector.main_piano.play([self._chord_bass] + self._chord_voicing.split(','))
 
     @property
     def chord_default_voicing(self):
@@ -337,21 +365,46 @@ class GlobalStateClz:
         if refresh:
             app.refresh()
 
+    @property
+    def playing_note(self):
+        return self._playing_note
+
+    @playing_note.setter
+    def playing_note(self, value):
+        self._playing_note = value
+
+    @property
+    def scale_notes(self):
+        return self._scale_notes
+
+    @property
+    def analyse_chord(self):
+        return self._analyse_chord
+
+    @analyse_chord.setter
+    def analyse_chord(self, value):
+        refresh = False
+        if value != self._analyse_chord:
+            refresh = True
+        self._analyse_chord = value
+        if refresh:
+            app.chord_analyser.refresh()
+
     def _chord_change(self):
         chord = self._chord_pattern.replace("X", self._chord_root)
         notes = Theory.make_chord(chord)[0]
         self._chord_voicing = ",".join(notes)
         self._chord_default_voicing = ",".join(notes)
 
+    def _scale_change(self):
+        notes = Theory.make_scale(f"{self._scale_root}/{self._scale_pattern}")[0]
+        self._scale_notes = ",".join(notes)
+
     def play_aux_piano(self, notes):
-        app.aux_piano.play(notes)
+        app.chord_analyser.aux_piano.play(notes)
 
 
 GlobalState = GlobalStateClz()
-
-
-class GlobalSetting:
-    lan = "zh"
 
 
 class ChordRootNoteList(Frame):
@@ -359,7 +412,7 @@ class ChordRootNoteList(Frame):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        col_name = "和弦根音" if GlobalSetting.lan == "zh" else "Chord Root"
+        col_name = "Chord Root"
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
         for i in range(12):
@@ -367,12 +420,11 @@ class ChordRootNoteList(Frame):
             btn.pack(side=TOP, fill=BOTH, expand=YES)
             btn.bind("<Button-1>", self.left_click)
             setattr(self, f"root_note_{i}", btn)
-        self.refresh()
 
     def refresh(self):
-        scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
+        scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
         nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
-        note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
+        note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"root_note_{i}")
             btn.configure(bg="white", fg="black")
@@ -390,6 +442,8 @@ class ChordRootNoteList(Frame):
         GlobalState.chord_root = note
         GlobalState.chord_bass = note
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_root])
 
 
 class ChordBaseNoteList(Frame):
@@ -397,7 +451,7 @@ class ChordBaseNoteList(Frame):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        col_name = "和弦贝斯" if GlobalSetting.lan == "zh" else "Chord Bass"
+        col_name = "Chord Bass"
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
 
         for i in range(12):
@@ -406,12 +460,10 @@ class ChordBaseNoteList(Frame):
             btn.bind("<Button-1>", self.left_click)
             setattr(self, f"bass_note_{i}", btn)
 
-        self.refresh()
-
     def refresh(self):
-        scale_root_index = Theory.note_index(Theory.note_lst_x3, GlobalState.scale_root)
+        scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
         nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
-        note_list = Theory.note_lst_x3[scale_root_index:scale_root_index + 12]
+        note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"bass_note_{i}")
             note = note_list[i]
@@ -428,6 +480,8 @@ class ChordBaseNoteList(Frame):
         note = event.widget.r_get_text()
         GlobalState.chord_bass = note
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
 class ChordGrid(Frame):
@@ -445,8 +499,6 @@ class ChordGrid(Frame):
             btn.bind("<Button-1>", self.left_click)
             btn.grid(column=i % cols, row=int(i / cols), sticky="nesw")
             setattr(self, f"chord_{i}", btn)
-
-        self.refresh()
 
     def refresh(self):
         nice_chords = []
@@ -474,22 +526,27 @@ class ChordGrid(Frame):
         text = event.widget.r_get_text()
         GlobalState.chord_pattern = text.replace(GlobalState.chord_root, "X")
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
-class ChordList(Frame):
+class ChordSelectorMiddle(Frame):
 
     def __init__(self, cols, **kwargs):
         super().__init__(**kwargs)
 
-        col_name = "和弦" if GlobalSetting.lan == "zh" else "Chord"
+        col_name = "Chord"
         Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.voicing = ChordDetailVoicing(master=self)
+        self.voicing.pack(side=TOP, fill=X, expand=False)
 
         self.chord_grid = ChordGrid(cols, master=self)
         self.chord_grid.master = self
         self.chord_grid.pack(side=TOP, fill=BOTH, expand=True)
-        self.refresh()
 
     def refresh(self):
+        self.voicing.refresh()
         self.chord_grid.refresh()
 
 
@@ -497,7 +554,7 @@ class ChordDetailVoicing(Frame):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
 
-        col_name = "和弦排列:" if GlobalSetting.lan == "zh" else "Chord Voicing:"
+        col_name = "Chord Voicing:"
         Label(self, text=col_name, bg="gray").pack(side=LEFT, fill=X)
 
         self.bass = Label(self, bg="gray")
@@ -506,10 +563,20 @@ class ChordDetailVoicing(Frame):
         self.voicing_entry = Entry(self)
         self.voicing_entry.pack(side=LEFT, fill=X, expand=True)
 
-        context = "试听" if GlobalSetting.lan == "zh" else "Listen"
+        context = "Listen"
         self.listen_btn = Button(self, text=context)
         self.listen_btn.bind("<Button-1>", self.listen_btn_left_click)
         self.listen_btn.pack(side=LEFT, fill=X, expand=False)
+
+        context = "Stop"
+        self.listen_btn = Button(self, text=context)
+        self.listen_btn.bind("<Button-1>", self.stop_btn_left_click)
+        self.listen_btn.pack(side=LEFT, fill=X, expand=False)
+
+        context = "Insert"
+        self.insert_btn = Button(self, text=context)
+        self.insert_btn.bind("<Button-1>", self.insert_btn_left_click)
+        self.insert_btn.pack(side=LEFT, fill=X, expand=False)
 
     def refresh(self):
         self.bass.configure(text=GlobalState.chord_bass)
@@ -525,120 +592,22 @@ class ChordDetailVoicing(Frame):
         else:
             GlobalState.chord_voicing = voicing
         # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
-
-class ChordDetailAuxScales(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "辅助音阶" if GlobalSetting.lan == "zh" else "Aux Scales"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.aux_scale_list = Listbox(self)
-        self.aux_scale_list.bind("<<ListboxSelect>>", self.aux_scale_list_select)
-        self.aux_scale_list.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        if self.aux_scale_list.size() > 0:
-            self.aux_scale_list.delete(0, self.aux_scale_list.size())
-        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        scales = Theory.find_scales_by_chord(chord)
-        for idx, scale in enumerate(scales):
-            note, tag = scale.split("/")
-            self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
-
-    def aux_scale_list_select(self, event):
-        aux_scale = None
-        try:
-            index = self.aux_scale_list.curselection()
-            aux_scale = self.aux_scale_list.get(index)
-        except Exception:
-            pass
-        if aux_scale is None:
-            return
-        note, scale = aux_scale.split("|")
-        note = note.strip()
-        scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
-        notes = Theory.make_scale(f"{note}/{scale}")[0]
-        GlobalState.play_aux_piano(notes)
+    def stop_btn_left_click(self, event):
         # todo play sound
-
-
-class ChordDetailAuxChords(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "辅助和弦" if GlobalSetting.lan == "zh" else "Aux Chords"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.aux_chord_list = Listbox(self)
-        self.aux_chord_list.bind("<<ListboxSelect>>", self.aux_chord_list_select)
-        self.aux_chord_list.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        if self.aux_chord_list.size() > 0:
-            self.aux_chord_list.delete(0, self.aux_chord_list.size())
-        target_chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        chords = Theory.find_similar_chord(target_chord)
-        for idx, chord in enumerate(chords):
-            self.aux_chord_list.insert(idx, chord)
-
-    def aux_chord_list_select(self, event):
-        aux_chord = None
-        try:
-            index = self.aux_chord_list.curselection()
-            aux_chord = self.aux_chord_list.get(index)
-        except Exception:
-            pass
-        if aux_chord is None:
-            return
-        # todo play sound
-        notes = Theory.make_chord(aux_chord)[0]
-        GlobalState.play_aux_piano(notes)
-
-
-class ChordDetailBottom(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.aux_scale_list = ChordDetailAuxScales(master=self)
-        self.aux_scale_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.aux_chord_list = ChordDetailAuxChords(master=self)
-        self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-    def refresh(self):
-        self.aux_scale_list.refresh()
-        self.aux_chord_list.refresh()
-
-
-class ChordDetailAll(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "和弦详情" if GlobalSetting.lan == "zh" else "Chord Detail"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.voicing = ChordDetailVoicing(master=self)
-        self.voicing.pack(side=TOP, fill=X)
-
-        context = "插入" if GlobalSetting.lan == "zh" else "Insert"
-        self.insert_btn = Button(self, text=context)
-        self.insert_btn.bind("<Button-1>", self.insert_btn_left_click)
-        self.insert_btn.pack(side=TOP, fill=X, expand=False)
-
-        self.listbox = ChordDetailBottom(master=self)
-        self.listbox.pack(side=TOP, fill=BOTH, expand=True)
-
-        self.refresh()
-
-    def refresh(self):
-        self.voicing.refresh()
-        self.listbox.refresh()
+        ReaperUtil.stop_play_all()
 
     def insert_btn_left_click(self, event):
         # todo insert item to daw
-        pass
+        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
+        if GlobalState.chord_root != GlobalState.chord_bass:
+            chord = chord + "/" + GlobalState.chord_bass
+        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}")
+        # todo play sound
+        ReaperUtil.stop_play()
+        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
 
 class Piano(Frame):
@@ -714,7 +683,7 @@ class Piano(Frame):
 class SelectMainScaleUi(Frame):
     def __init__(self, **kwargs):
         super().__init__(**kwargs)
-        label_context = "主音" if GlobalSetting.lan == "zh" else "Main Note"
+        label_context = "Main Note"
         Label(self, text=label_context).pack(side=LEFT)
         self.drop_down_note = ttk.Combobox(self)
         note_list = tuple([x.split('/')[0] for x in Theory.note_lst])
@@ -722,27 +691,37 @@ class SelectMainScaleUi(Frame):
         self.drop_down_note.bind("<<ComboboxSelected>>", self.select_note)
         self.drop_down_note.pack(side=LEFT, fill=BOTH, expand=YES)
 
-        label_context = "音阶" if GlobalSetting.lan == "zh" else "Main Scale"
+        label_context = "Main Scale"
         Label(self, text=label_context).pack(side=LEFT)
 
         self.drop_down_scale = ttk.Combobox(self)
-        scale_list = tuple([x["zh"] for x in Theory.scale_map.values()]) if GlobalSetting.lan == "zh" \
-            else tuple([x["en"] for x in Theory.scale_map.values()])
+        scale_list = tuple(Theory.scale_map.keys())
         self.drop_down_scale["value"] = scale_list
         self.drop_down_scale.bind("<<ComboboxSelected>>", self.select_scale)
         self.drop_down_scale.pack(side=LEFT, fill=BOTH, expand=YES)
 
-        self.refresh()
+        label_context = "Oct"
+        Label(self, text=label_context).pack(side=LEFT)
+
+        self.drop_down_oct = ttk.Combobox(self)
+        oct_list = tuple([-1, 0, 1])
+        self.drop_down_oct["value"] = oct_list
+        self.drop_down_oct.bind("<<ComboboxSelected>>", self.select_oct)
+        self.drop_down_oct.pack(side=LEFT, fill=BOTH, expand=YES)
 
     def refresh(self):
         self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
         self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
+        self.drop_down_oct.current([-1, 0, 1].index(GlobalState.oct))
 
     def select_note(self, event):
         GlobalState.scale_root = self.drop_down_note.get()
 
     def select_scale(self, event):
-        GlobalState.scale_pattern = Theory.find_scale_tag_by_scale_name(self.drop_down_scale.get(), GlobalSetting.lan)
+        GlobalState.scale_pattern = self.drop_down_scale.get()
+
+    def select_oct(self, event):
+        GlobalState.oct = int(self.drop_down_oct.get())
 
 
 class StateInfoUi(Frame):
@@ -761,28 +740,194 @@ class StateInfoUi(Frame):
         self.scale_voicing_label = Label(self)
         self.scale_voicing_label.pack(side=LEFT, fill=BOTH, expand=YES)
 
-        self.refresh()
-
     def refresh(self):
-        label_context = "模式: " if GlobalSetting.lan == "zh" else "Pattern: "
+        label_context = "Pattern: "
         self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern]["pattern"])
 
-        label_context = "音名: " if GlobalSetting.lan == "zh" else "Notes: "
-        notes = ",".join(Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
+        label_context = "Notes: "
+        notes = GlobalState.scale_notes
         self.scale_note_label.configure(text=label_context + notes)
 
-        label_context = "和弦: " if GlobalSetting.lan == "zh" else "Chord: "
+        label_context = "Chord: "
         chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         if GlobalState.chord_bass != GlobalState.chord_root:
             chord = chord + "/" + GlobalState.chord_bass
         self.scale_chord_label.configure(text=label_context + chord)
 
-        label_context = "和弦音: " if GlobalSetting.lan == "zh" else "Chord Notes: "
-        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        voicing = ','.join(Theory.make_chord(chord)[0])
-        if GlobalState.chord_bass != GlobalState.chord_root:
+        label_context = "Chord Notes: "
+        voicing = GlobalState.chord_voicing
+        if GlobalState.chord_bass != voicing[0]:
             voicing = GlobalState.chord_bass + "," + voicing
         self.scale_voicing_label.configure(text=label_context + voicing)
+
+
+class Top(Frame):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+        self.selector = SelectMainScaleUi(master=self)
+        self.selector.pack(side=TOP, fill=X, expand=False)
+
+        self.state_info = StateInfoUi(master=self)
+        self.state_info.pack(side=TOP, fill=X, expand=False)
+
+    def refresh(self):
+        self.selector.refresh()
+        self.state_info.refresh()
+
+
+class ChordSelector(Frame):
+
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.top = Top(master=self)
+        self.top.pack(side=TOP, fill=BOTH, expand=False)
+
+        self.main_piano = Piano(4, bg="white", master=self)
+        self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
+
+        col_name = "Chord Display"
+        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        self.chord_root_note_list = ChordRootNoteList(master=self)
+        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
+
+        self.chord_map = ChordSelectorMiddle(5, master=self)
+        self.chord_map.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.chord_bass_note_list = ChordBaseNoteList(master=self)
+        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
+
+    def refresh(self):
+        self.top.refresh()
+        self.chord_root_note_list.refresh()
+        self.chord_bass_note_list.refresh()
+        self.chord_map.refresh()
+        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
+
+
+class ChordDetailAuxScales(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "Aux Scales"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.aux_scale_list = Listbox(self)
+        self.aux_scale_list.bind("<<ListboxSelect>>", self.aux_scale_list_select)
+        self.aux_scale_list.pack(side=TOP, fill=BOTH, expand=True)
+
+    def refresh(self):
+        if self.aux_scale_list.size() > 0:
+            self.aux_scale_list.delete(0, self.aux_scale_list.size())
+        chord = GlobalState.analyse_chord
+        scales = Theory.find_scales_by_chord(chord)
+        for idx, scale in enumerate(scales):
+            note, tag = scale.split("/")
+            # self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
+            self.aux_scale_list.insert(idx, f"{note} | {tag}")
+
+    def aux_scale_list_select(self, event):
+        aux_scale = None
+        try:
+            index = self.aux_scale_list.curselection()
+            aux_scale = self.aux_scale_list.get(index)
+        except Exception:
+            pass
+        if aux_scale is None:
+            return
+        note, scale = aux_scale.split("|")
+        note = note.strip()
+        # scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
+        scale = scale.strip()
+        notes = Theory.make_scale(f"{note}/{scale}")[0]
+        GlobalState.play_aux_piano(notes)
+        # todo play sound (not support)
+
+
+class ChordDetailAuxChords(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        col_name = "Aux Chords"
+        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
+
+        self.aux_chord_list = Listbox(self)
+        self.aux_chord_list.bind("<<ListboxSelect>>", self.aux_chord_list_select)
+        self.aux_chord_list.pack(side=TOP, fill=BOTH, expand=True)
+
+    def refresh(self):
+        if self.aux_chord_list.size() > 0:
+            self.aux_chord_list.delete(0, self.aux_chord_list.size())
+        target_chord = GlobalState.analyse_chord
+        chords = Theory.find_similar_chord(target_chord)
+        for idx, chord in enumerate(chords):
+            self.aux_chord_list.insert(idx, chord)
+
+    def aux_chord_list_select(self, event):
+        aux_chord = None
+        try:
+            index = self.aux_chord_list.curselection()
+            aux_chord = self.aux_chord_list.get(index)
+        except Exception:
+            pass
+        if aux_chord is None:
+            return
+        # todo play sound
+        notes = Theory.make_chord(aux_chord)[0]
+        GlobalState.play_aux_piano(notes)
+        ReaperUtil.stop_play()
+        ReaperUtil.play(notes)
+
+
+class ChordAnalyserTop(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.chord = Entry(self)
+        self.chord.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.analyser = Button(self, text="Analyser")
+        self.analyser.bind('<Button-1>', self.analyser_click)
+        self.analyser.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.analyser = Button(self, text="Stop")
+        self.analyser.bind('<Button-1>', self.stop_click)
+        self.analyser.pack(side=LEFT, fill=BOTH, expand=True)
+
+    def analyser_click(self, event):
+        GlobalState.analyse_chord = self.chord.get()
+
+    def stop_click(self, event):
+        # todo play sound
+        ReaperUtil.stop_play_all()
+
+
+class ChordAnalyser(Frame):
+    def __init__(self, **kwargs):
+        super().__init__(**kwargs)
+
+        self.top = ChordAnalyserTop(master=self)
+        self.top.pack(side=TOP, fill=BOTH, expand=False)
+
+        self.aux_piano = Piano(2, bg="white", master=self)
+        self.aux_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        col_name = "Aux Display"
+        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
+
+        self.aux_scale_list = ChordDetailAuxScales(master=self)
+        self.aux_scale_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+        self.aux_chord_list = ChordDetailAuxChords(master=self)
+        self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
+
+    def refresh(self):
+        self.aux_scale_list.refresh()
+        self.aux_chord_list.refresh()
 
 
 class App:
@@ -794,58 +939,167 @@ class App:
         return cls.instance
 
     def __init__(self):
+        ReaperUtil.parse_item()
         self.app = Tk()
         self.app.title('rChord')
-        self.app.geometry("900x600+800+400")
-        self.build()
+        self.app.geometry("900x800+800+400")
+        self.app.bind("<KeyPress-Escape>", self.esc)
+        self.app.attributes('-topmost', 1)
 
-    def build(self):
-        self.select_main_scale = SelectMainScaleUi(master=self.app)
-        self.select_main_scale.pack(side=TOP, fill=BOTH, expand=False)
+        self.tabs = ttk.Notebook(self.app)
+        self.tabs.pack(fill=BOTH, expand=True)
 
-        self.state_info = StateInfoUi(master=self.app)
-        self.state_info.pack(side=TOP, fill=BOTH, expand=False)
+        self.chord_selector = ChordSelector(master=self.app)
+        self.chord_analyser = ChordAnalyser(master=self.app)
 
-        self.aux_piano = Piano(3, bg="white", master=self.app)
-        self.aux_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
+        self.tabs.add(self.chord_selector, text="ChordSelector")
+        self.tabs.select(self.tabs.tabs()[0])
+        self.tabs.add(self.chord_analyser, text="ChordAnalyser")
+        self.tabs.tabs()
 
-        col_name = "辅助图示" if GlobalSetting.lan == "zh" else "Aux Display"
-        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.main_piano = Piano(3, bg="white", master=self.app)
-        self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
-
-        col_name = "和弦图示" if GlobalSetting.lan == "zh" else "Chord Display"
-        Label(self.app, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.chord_root_note_list = ChordRootNoteList(master=self.app)
-        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
-
-        self.chord_list = ChordList(5, master=self.app)
-        self.chord_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.chord_bass_note_list = ChordBaseNoteList(master=self.app)
-        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
-
-        self.chord_detail = ChordDetailAll(master=self.app)
-        self.chord_detail.pack(side=LEFT, fill=BOTH, expand=False)
-
-    def refresh(self):
-        self.select_main_scale.refresh()
-        self.state_info.refresh()
-        self.chord_root_note_list.refresh()
-        self.chord_bass_note_list.refresh()
-        self.chord_list.refresh()
-        self.chord_detail.refresh()
-        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
-        self.aux_piano.play([])
+        self.refresh()
 
     def run(self):
         self.app.mainloop()
 
+    def refresh(self):
+        self.chord_selector.refresh()
+
+    def esc(self, event):
+        self.app.destroy()
+
+
+class ReaperUtil:
+    ChordTrackName = "__CHORD_TRACK__"
+    ChordTrackMeta = "__CHORD_META__"
+
+    @classmethod
+    def parse_item(cls):
+        ReaperUtil.stop_play_all()
+        chord, meta = ReaperUtil.select_chord_item()
+        if None in [chord, meta]:
+            return
+        if "/" in chord:
+            GlobalState._chord_bass = chord.split('/')[1]
+            chord = chord.split('/')[0]
+            GlobalState._scale_root = meta.split("/")[0]
+            GlobalState._scale_pattern = meta.split("/")[1]
+            GlobalState._chord_voicing = meta.split("/")[2]
+            chord_notes = Theory.make_chord(chord)[0]
+            GlobalState._chord_root = chord_notes[0]
+            GlobalState._chord_default_voicing = chord_notes
+            GlobalState._chord_pattern = chord.replace(GlobalState._chord_root, "X")
+            GlobalState._scale_notes = ",".join(
+                Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
+        else:
+            GlobalState._scale_root = meta.split("/")[0]
+            GlobalState._scale_pattern = meta.split("/")[1]
+            GlobalState._chord_voicing = meta.split("/")[2]
+            chord_notes = Theory.make_chord(chord)[0]
+            GlobalState._chord_root = chord_notes[0]
+            GlobalState._chord_bass = chord_notes[0]
+            GlobalState._chord_default_voicing = chord_notes
+            GlobalState._chord_pattern = chord.replace(GlobalState._chord_root, "X")
+            GlobalState._scale_notes = ",".join(
+                Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
+
+    @classmethod
+    def insert_chord_item(cls, chord, meta):
+        p = rpy.Project()
+        chord_track = None
+        meta_track = None
+        for t in p.tracks:
+            if t.name == cls.ChordTrackName:
+                chord_track = t
+            if t.name == cls.ChordTrackMeta:
+                meta_track = t
+            if all([chord_track, meta_track]):
+                break
+        if not meta_track:
+            meta_track = p.add_track(0, cls.ChordTrackMeta)
+        if not chord_track:
+            chord_track = p.add_track(0, cls.ChordTrackName)
+        end_pos = p.cursor_position + p.beats_to_time(4)
+        chord_item = chord_track.add_item(
+            start=p.cursor_position,
+            end=end_pos,
+        )
+        meta_item = meta_track.add_item(
+            start=p.cursor_position,
+            end=end_pos,
+        )
+
+        rpi.ULT_SetMediaItemNote(chord_item.id, chord)
+        rpi.ULT_SetMediaItemNote(meta_item.id, meta)
+        p.cursor_position = end_pos
+
+    @classmethod
+    def select_chord_item(cls):
+        p = rpy.Project()
+        chord_track = None
+        meta_track = None
+        for t in p.tracks:
+            if t.name == cls.ChordTrackName:
+                chord_track = t
+            if t.name == cls.ChordTrackMeta:
+                meta_track = t
+            if all([chord_track, meta_track]):
+                break
+        if not all([chord_track, meta_track]):
+            return None, None
+        if chord_track.n_items != meta_track.n_items:
+            return None, None
+        chord = None
+        select_idx = -1
+        for idx, item in enumerate(chord_track.items):
+            if item.is_selected:
+                select_idx = idx
+                chord = rpi.ULT_GetMediaItemNote(item.id)
+                break
+        if select_idx == -1:
+            return chord, None
+        meta = rpi.ULT_GetMediaItemNote(meta_track.items[select_idx].id)
+        return chord, meta
+
+    @classmethod
+    def play(cls, notes):
+        note_indexes = Theory.notes_to_notes_pitched(notes)[1]
+        notes = [x + 36 + GlobalState.oct * 12 for x in note_indexes]
+        cls._play(notes)
+
+    @classmethod
+    def _play(cls, notes):
+        keyboard_mode = 0  # virtualKeyboardMode
+        channel = 0
+        note_on = 0x90 + channel
+        velocity = 96
+        for note in notes:
+            rpi.StuffMIDIMessage(keyboard_mode, note_on, note, velocity)
+        GlobalState.playing_note = GlobalState.playing_note + notes
+
+    @classmethod
+    def stop_play(cls):
+        keyboard_mode = 0  # virtualKeyboardMode
+        channel = 0
+        note_off = 0x80 + channel
+        velocity = 0
+        for note in GlobalState.playing_note:
+            rpi.StuffMIDIMessage(keyboard_mode, note_off, note, velocity)
+        GlobalState.playing_note = []
+
+    @classmethod
+    def stop_play_all(cls):
+        keyboard_mode = 0  # virtualKeyboardMode
+        channel = 0
+        note_off = 0x80 + channel
+        velocity = 0
+        for note in range(0, 128):
+            rpi.StuffMIDIMessage(keyboard_mode, note_off, note, velocity)
+        GlobalState.playing_note = []
+
 
 if __name__ == "__main__":
     app = App()
-    app.run()
+    ReaperUtil.parse_item()
+    ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
+
