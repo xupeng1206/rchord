@@ -1,21 +1,5 @@
-import time
-from tkinter import *
-from tkinter import ttk
-
 import reapy as rpy
 from reapy import reascript_api as rpi
-
-
-def r_set_text(self, text):
-    self.r_text = text
-
-
-def r_get_text(self):
-    return getattr(self, "r_text")
-
-
-setattr(Button, "r_set_text", r_set_text)
-setattr(Button, "r_get_text", r_get_text)
 
 
 class Theory:
@@ -287,7 +271,6 @@ class GlobalStateClz:
         self._scale_root = value
         if refresh:
             self._scale_change()
-            app.refresh()
 
     @property
     def scale_pattern(self):
@@ -301,7 +284,6 @@ class GlobalStateClz:
         self._scale_pattern = value
         if refresh:
             self._scale_change()
-            app.refresh()
 
     @property
     def chord_root(self):
@@ -315,7 +297,6 @@ class GlobalStateClz:
         self._chord_root = value
         if refresh:
             self._chord_change()
-            app.refresh()
 
     @property
     def chord_pattern(self):
@@ -329,7 +310,6 @@ class GlobalStateClz:
         self._chord_pattern = value
         if refresh:
             self._chord_change()
-            app.refresh()
 
     @property
     def chord_voicing(self):
@@ -342,7 +322,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_voicing = value
         if refresh:
-            app.chord_selector.main_piano.play([self._chord_bass] + self._chord_voicing.split(','))
+            pass
 
     @property
     def chord_default_voicing(self):
@@ -363,7 +343,7 @@ class GlobalStateClz:
             refresh = True
         self._chord_bass = value
         if refresh:
-            app.refresh()
+            pass
 
     @property
     def playing_note(self):
@@ -388,7 +368,7 @@ class GlobalStateClz:
             refresh = True
         self._analyse_chord = value
         if refresh:
-            app.chord_analyser.refresh()
+            pass
 
     def _chord_change(self):
         chord = self._chord_pattern.replace("X", self._chord_root)
@@ -400,573 +380,8 @@ class GlobalStateClz:
         notes = Theory.make_scale(f"{self._scale_root}/{self._scale_pattern}")[0]
         self._scale_notes = ",".join(notes)
 
-    def play_aux_piano(self, notes):
-        app.chord_analyser.aux_piano.play(notes)
-
 
 GlobalState = GlobalStateClz()
-
-
-class ChordRootNoteList(Frame):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Chord Root"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        for i in range(12):
-            btn = Button(self)
-            btn.pack(side=TOP, fill=BOTH, expand=YES)
-            btn.bind("<Button-1>", self.left_click)
-            setattr(self, f"root_note_{i}", btn)
-
-    def refresh(self):
-        scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
-        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
-        note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
-        for i in range(12):
-            btn = getattr(self, f"root_note_{i}")
-            btn.configure(bg="white", fg="black")
-            note = note_list[i]
-            if note in nice_notes:
-                btn.configure(bg="pink", fg="black")
-            note = note.split("/")[0]
-            if note == GlobalState.chord_root:
-                btn.configure(bg="blue", fg="white")
-            btn.configure(text=note)
-            btn.r_set_text(note)
-
-    def left_click(self, event):
-        note = event.widget.r_get_text()
-        GlobalState.chord_root = note
-        GlobalState.chord_bass = note
-        # todo play sound
-        ReaperUtil.stop_play()
-        ReaperUtil.play([GlobalState.chord_root])
-
-
-class ChordBaseNoteList(Frame):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Chord Bass"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        for i in range(12):
-            btn = Button(self)
-            btn.pack(side=TOP, fill=BOTH, expand=YES)
-            btn.bind("<Button-1>", self.left_click)
-            setattr(self, f"bass_note_{i}", btn)
-
-    def refresh(self):
-        scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
-        nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
-        note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
-        for i in range(12):
-            btn = getattr(self, f"bass_note_{i}")
-            note = note_list[i]
-            btn.configure(bg="white", fg="black")
-            if note in nice_notes:
-                btn.configure(bg="pink", fg="black")
-            note = note.split("/")[0]
-            if note == GlobalState.chord_bass:
-                btn.configure(bg="blue", fg="white")
-            btn.configure(text=note)
-            btn.r_set_text(note)
-
-    def left_click(self, event):
-        note = event.widget.r_get_text()
-        GlobalState.chord_bass = note
-        # todo play sound
-        ReaperUtil.stop_play()
-        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
-
-
-class ChordGrid(Frame):
-    def __init__(self, cols, **kwargs):
-        super().__init__(**kwargs)
-
-        chord_num = len(Theory.chord_map)
-        for col_index in range(cols):
-            self.columnconfigure(col_index, weight=1)
-        for row_index in range(int(chord_num / cols) + 1):
-            self.rowconfigure(row_index, weight=1)
-
-        for i in range(chord_num):
-            btn = Button(self)
-            btn.bind("<Button-1>", self.left_click)
-            btn.grid(column=i % cols, row=int(i / cols), sticky="nesw")
-            setattr(self, f"chord_{i}", btn)
-
-    def refresh(self):
-        nice_chords = []
-        special_chords = []
-        for tag in Theory.chord_map.keys():
-            chord = tag.replace("X", GlobalState.chord_root)
-            if Theory.chord_in_scale(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}"):
-                nice_chords.append(chord)
-            else:
-                special_chords.append(chord)
-        chords = nice_chords + special_chords
-        for i in range(len(Theory.chord_map)):
-            btn = getattr(self, f"chord_{i}")
-            context = chords[i]
-            if context in nice_chords:
-                btn.configure(bg="pink", fg="black")
-            if context in special_chords:
-                btn.configure(bg="white", fg="black")
-            if context == GlobalState.chord_pattern.replace("X", GlobalState.chord_root):
-                btn.configure(bg="blue", fg="white")
-            btn.configure(text=context)
-            btn.r_set_text(context)
-
-    def left_click(self, event):
-        text = event.widget.r_get_text()
-        GlobalState.chord_pattern = text.replace(GlobalState.chord_root, "X")
-        # todo play sound
-        ReaperUtil.stop_play()
-        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
-
-
-class ChordSelectorMiddle(Frame):
-
-    def __init__(self, cols, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Chord"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.voicing = ChordDetailVoicing(master=self)
-        self.voicing.pack(side=TOP, fill=X, expand=False)
-
-        self.chord_grid = ChordGrid(cols, master=self)
-        self.chord_grid.master = self
-        self.chord_grid.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        self.voicing.refresh()
-        self.chord_grid.refresh()
-
-
-class ChordDetailVoicing(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Chord Voicing:"
-        Label(self, text=col_name, bg="gray").pack(side=LEFT, fill=X)
-
-        self.bass = Label(self, bg="gray")
-        self.bass.pack(side=LEFT, fill=X, padx=5)
-
-        self.voicing_entry = Entry(self)
-        self.voicing_entry.pack(side=LEFT, fill=X, expand=True)
-
-        context = "Listen"
-        self.listen_btn = Button(self, text=context)
-        self.listen_btn.bind("<Button-1>", self.listen_btn_left_click)
-        self.listen_btn.pack(side=LEFT, fill=X, expand=False)
-
-        context = "Stop"
-        self.listen_btn = Button(self, text=context)
-        self.listen_btn.bind("<Button-1>", self.stop_btn_left_click)
-        self.listen_btn.pack(side=LEFT, fill=X, expand=False)
-
-        context = "Insert"
-        self.insert_btn = Button(self, text=context)
-        self.insert_btn.bind("<Button-1>", self.insert_btn_left_click)
-        self.insert_btn.pack(side=LEFT, fill=X, expand=False)
-
-    def refresh(self):
-        self.bass.configure(text=GlobalState.chord_bass)
-        self.voicing_entry.delete(0, len(self.voicing_entry.get()))
-        self.voicing_entry.insert(0, GlobalState.chord_voicing)
-
-    def listen_btn_left_click(self, event):
-        voicing = self.voicing_entry.get()
-        if set(voicing.split(',')) - set(GlobalState.chord_default_voicing.split(",")):
-            # voicing error
-            self.voicing_entry.delete(0, len(self.voicing_entry.get()))
-            self.voicing_entry.insert(0, GlobalState.chord_voicing)
-        else:
-            GlobalState.chord_voicing = voicing
-        # todo play sound
-        ReaperUtil.stop_play()
-        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
-
-    def stop_btn_left_click(self, event):
-        # todo play sound
-        ReaperUtil.stop_play_all()
-
-    def insert_btn_left_click(self, event):
-        # todo insert item to daw
-        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        if GlobalState.chord_root != GlobalState.chord_bass:
-            chord = chord + "/" + GlobalState.chord_bass
-        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}")
-        # todo play sound
-        ReaperUtil.stop_play()
-        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
-
-
-class Piano(Frame):
-
-    def __init__(self, oct_num, **kwargs):
-        super().__init__(**kwargs)
-        self.oct_num = oct_num
-        self.rowconfigure(0, weight=1)
-        self.rowconfigure(1, weight=1)
-        for col_index in range(oct_num * 14):
-            self.columnconfigure(col_index, weight=1)
-        for oct_index in range(oct_num):
-            for note_index, note in enumerate(Theory.note_lst[:5]):
-                shift = 14 * oct_index
-                if note_index % 2 == 0:
-                    note = f'{note}{oct_index}'
-                    btn = Button(self, text="", bg="white", fg="black")
-                    setattr(self, note, btn)
-                    btn.grid(row=1, column=note_index + shift, columnspan=2, sticky="nesw", padx=1, pady=1)
-                else:
-                    note = note.split('/')[0]
-                    note = f'{note}{oct_index}'
-                    btn = Button(self, text="", bg="black", fg="white")
-                    setattr(self, note, btn)
-                    btn.grid(row=0, column=note_index + shift, columnspan=2, sticky="nesw", padx=1, pady=1)
-
-            for note_index, note in enumerate(Theory.note_lst[5:12]):
-                shift = 14 * oct_index + 6
-                if note_index % 2 == 0:
-                    note = f'{note}{oct_index}'
-                    btn = Button(self, text="", bg="white", fg="black")
-                    setattr(self, note, btn)
-                    btn.grid(row=1, column=note_index + shift, columnspan=2, sticky="nesw", padx=1, pady=1)
-                else:
-                    note = note.split('/')[0]
-                    note = f'{note}{oct_index}'
-                    btn = Button(self, text="", bg="black", fg="white")
-                    setattr(self, note, btn)
-                    btn.grid(row=0, column=note_index + shift, columnspan=2, sticky="nesw", padx=1, pady=1)
-
-    def play(self, notes):
-        for oct_index in range(self.oct_num):
-            for note_index, note in enumerate(Theory.note_lst[:5]):
-                if note_index % 2 == 0:
-                    note = f'{note}{oct_index}'
-                    btn = getattr(self, note)
-                    btn.configure(bg="white", fg="black")
-                else:
-                    note = note.split('/')[0]
-                    note = f'{note}{oct_index}'
-                    btn = getattr(self, note)
-                    btn.configure(bg="black", fg="white")
-
-            for note_index, note in enumerate(Theory.note_lst[5:12]):
-                shift = 14 * oct_index + 6
-                if note_index % 2 == 0:
-                    note = f'{note}{oct_index}'
-                    btn = getattr(self, note)
-                    btn.configure(bg="white", fg="black")
-                else:
-                    note = note.split('/')[0]
-                    note = f'{note}{oct_index}'
-                    btn = getattr(self, note)
-                    btn.configure(bg="black", fg="white")
-
-        # make note to note with oct_index
-        note_pitched = Theory.notes_to_notes_pitched(notes)
-        for note in note_pitched[0]:
-            btn = getattr(self, note.split("/")[0])
-            btn.configure(bg="blue", fg="white")
-
-
-class SelectMainScaleUi(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        label_context = "Main Note"
-        Label(self, text=label_context).pack(side=LEFT)
-        self.drop_down_note = ttk.Combobox(self)
-        note_list = tuple([x.split('/')[0] for x in Theory.note_lst])
-        self.drop_down_note["value"] = note_list
-        self.drop_down_note.bind("<<ComboboxSelected>>", self.select_note)
-        self.drop_down_note.pack(side=LEFT, fill=BOTH, expand=YES)
-
-        label_context = "Main Scale"
-        Label(self, text=label_context).pack(side=LEFT)
-
-        self.drop_down_scale = ttk.Combobox(self)
-        scale_list = tuple(Theory.scale_map.keys())
-        self.drop_down_scale["value"] = scale_list
-        self.drop_down_scale.bind("<<ComboboxSelected>>", self.select_scale)
-        self.drop_down_scale.pack(side=LEFT, fill=BOTH, expand=YES)
-
-        label_context = "Oct"
-        Label(self, text=label_context).pack(side=LEFT)
-
-        self.drop_down_oct = ttk.Combobox(self)
-        oct_list = tuple([-1, 0, 1])
-        self.drop_down_oct["value"] = oct_list
-        self.drop_down_oct.bind("<<ComboboxSelected>>", self.select_oct)
-        self.drop_down_oct.pack(side=LEFT, fill=BOTH, expand=YES)
-
-    def refresh(self):
-        self.drop_down_note.current(Theory.note_index(Theory.note_lst, GlobalState.scale_root))
-        self.drop_down_scale.current(list(Theory.scale_map.keys()).index(GlobalState.scale_pattern))
-        self.drop_down_oct.current([-1, 0, 1].index(GlobalState.oct))
-
-    def select_note(self, event):
-        GlobalState.scale_root = self.drop_down_note.get()
-
-    def select_scale(self, event):
-        GlobalState.scale_pattern = self.drop_down_scale.get()
-
-    def select_oct(self, event):
-        GlobalState.oct = int(self.drop_down_oct.get())
-
-
-class StateInfoUi(Frame):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.scale_pattern_label = Label(self)
-        self.scale_pattern_label.pack(side=LEFT, fill=BOTH, expand=YES)
-
-        self.scale_note_label = Label(self)
-        self.scale_note_label.pack(side=LEFT, fill=BOTH, expand=YES)
-
-        self.scale_chord_label = Label(self)
-        self.scale_chord_label.pack(side=LEFT, fill=BOTH, expand=YES)
-
-        self.scale_voicing_label = Label(self)
-        self.scale_voicing_label.pack(side=LEFT, fill=BOTH, expand=YES)
-
-    def refresh(self):
-        label_context = "Pattern: "
-        self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern]["pattern"])
-
-        label_context = "Notes: "
-        notes = GlobalState.scale_notes
-        self.scale_note_label.configure(text=label_context + notes)
-
-        label_context = "Chord: "
-        chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
-        if GlobalState.chord_bass != GlobalState.chord_root:
-            chord = chord + "/" + GlobalState.chord_bass
-        self.scale_chord_label.configure(text=label_context + chord)
-
-        label_context = "Chord Notes: "
-        voicing = GlobalState.chord_voicing
-        if GlobalState.chord_bass != voicing[0]:
-            voicing = GlobalState.chord_bass + "," + voicing
-        self.scale_voicing_label.configure(text=label_context + voicing)
-
-
-class Top(Frame):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-        self.selector = SelectMainScaleUi(master=self)
-        self.selector.pack(side=TOP, fill=X, expand=False)
-
-        self.state_info = StateInfoUi(master=self)
-        self.state_info.pack(side=TOP, fill=X, expand=False)
-
-    def refresh(self):
-        self.selector.refresh()
-        self.state_info.refresh()
-
-
-class ChordSelector(Frame):
-
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.top = Top(master=self)
-        self.top.pack(side=TOP, fill=BOTH, expand=False)
-
-        self.main_piano = Piano(4, bg="white", master=self)
-        self.main_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
-
-        col_name = "Chord Display"
-        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.chord_root_note_list = ChordRootNoteList(master=self)
-        self.chord_root_note_list.pack(side=LEFT, fill=BOTH, expand=False)
-
-        self.chord_map = ChordSelectorMiddle(5, master=self)
-        self.chord_map.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.chord_bass_note_list = ChordBaseNoteList(master=self)
-        self.chord_bass_note_list.pack(side=LEFT, fill=BOTH, expand=False)
-
-    def refresh(self):
-        self.top.refresh()
-        self.chord_root_note_list.refresh()
-        self.chord_bass_note_list.refresh()
-        self.chord_map.refresh()
-        self.main_piano.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(","))
-
-
-class ChordDetailAuxScales(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Aux Scales"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.aux_scale_list = Listbox(self)
-        self.aux_scale_list.bind("<<ListboxSelect>>", self.aux_scale_list_select)
-        self.aux_scale_list.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        if self.aux_scale_list.size() > 0:
-            self.aux_scale_list.delete(0, self.aux_scale_list.size())
-        chord = GlobalState.analyse_chord
-        scales = Theory.find_scales_by_chord(chord)
-        for idx, scale in enumerate(scales):
-            note, tag = scale.split("/")
-            # self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
-            self.aux_scale_list.insert(idx, f"{note} | {tag}")
-
-    def aux_scale_list_select(self, event):
-        aux_scale = None
-        try:
-            index = self.aux_scale_list.curselection()
-            aux_scale = self.aux_scale_list.get(index)
-        except Exception:
-            pass
-        if aux_scale is None:
-            return
-        note, scale = aux_scale.split("|")
-        note = note.strip()
-        # scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
-        scale = scale.strip()
-        notes = Theory.make_scale(f"{note}/{scale}")[0]
-        GlobalState.play_aux_piano(notes)
-        # todo play sound (not support)
-
-
-class ChordDetailAuxChords(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        col_name = "Aux Chords"
-        Label(self, text=col_name, bg="gray").pack(side=TOP, fill=X)
-
-        self.aux_chord_list = Listbox(self)
-        self.aux_chord_list.bind("<<ListboxSelect>>", self.aux_chord_list_select)
-        self.aux_chord_list.pack(side=TOP, fill=BOTH, expand=True)
-
-    def refresh(self):
-        if self.aux_chord_list.size() > 0:
-            self.aux_chord_list.delete(0, self.aux_chord_list.size())
-        target_chord = GlobalState.analyse_chord
-        chords = Theory.find_similar_chord(target_chord)
-        for idx, chord in enumerate(chords):
-            self.aux_chord_list.insert(idx, chord)
-
-    def aux_chord_list_select(self, event):
-        aux_chord = None
-        try:
-            index = self.aux_chord_list.curselection()
-            aux_chord = self.aux_chord_list.get(index)
-        except Exception:
-            pass
-        if aux_chord is None:
-            return
-        # todo play sound
-        notes = Theory.make_chord(aux_chord)[0]
-        GlobalState.play_aux_piano(notes)
-        ReaperUtil.stop_play()
-        ReaperUtil.play(notes)
-
-
-class ChordAnalyserTop(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.chord = Entry(self)
-        self.chord.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.analyser = Button(self, text="Analyser")
-        self.analyser.bind('<Button-1>', self.analyser_click)
-        self.analyser.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.analyser = Button(self, text="Stop")
-        self.analyser.bind('<Button-1>', self.stop_click)
-        self.analyser.pack(side=LEFT, fill=BOTH, expand=True)
-
-    def analyser_click(self, event):
-        GlobalState.analyse_chord = self.chord.get()
-
-    def stop_click(self, event):
-        # todo play sound
-        ReaperUtil.stop_play_all()
-
-
-class ChordAnalyser(Frame):
-    def __init__(self, **kwargs):
-        super().__init__(**kwargs)
-
-        self.top = ChordAnalyserTop(master=self)
-        self.top.pack(side=TOP, fill=BOTH, expand=False)
-
-        self.aux_piano = Piano(2, bg="white", master=self)
-        self.aux_piano.pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        col_name = "Aux Display"
-        Label(self, text=col_name, bg="gray").pack(side=BOTTOM, fill=BOTH, expand=False)
-
-        self.aux_scale_list = ChordDetailAuxScales(master=self)
-        self.aux_scale_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-        self.aux_chord_list = ChordDetailAuxChords(master=self)
-        self.aux_chord_list.pack(side=LEFT, fill=BOTH, expand=True)
-
-    def refresh(self):
-        self.aux_scale_list.refresh()
-        self.aux_chord_list.refresh()
-
-
-class App:
-    instance = None
-
-    def __new__(cls, *args, **kwargs):
-        if cls.instance is None:
-            cls.instance = super().__new__(cls)
-        return cls.instance
-
-    def __init__(self):
-        ReaperUtil.parse_item()
-        self.app = Tk()
-        self.app.title('rChord')
-        self.app.geometry("900x800+800+400")
-        self.app.bind("<KeyPress-Escape>", self.esc)
-        self.app.attributes('-topmost', 1)
-
-        self.tabs = ttk.Notebook(self.app)
-        self.tabs.pack(fill=BOTH, expand=True)
-
-        self.chord_selector = ChordSelector(master=self.app)
-        self.chord_analyser = ChordAnalyser(master=self.app)
-
-        self.tabs.add(self.chord_selector, text="ChordSelector")
-        self.tabs.select(self.tabs.tabs()[0])
-        self.tabs.add(self.chord_analyser, text="ChordAnalyser")
-        self.tabs.tabs()
-
-        self.refresh()
-
-    def run(self):
-        self.app.mainloop()
-
-    def refresh(self):
-        self.chord_selector.refresh()
-
-    def esc(self, event):
-        self.app.destroy()
 
 
 class ReaperUtil:
@@ -1099,7 +514,5 @@ class ReaperUtil:
 
 
 if __name__ == "__main__":
-    app = App()
     ReaperUtil.parse_item()
     ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
-
