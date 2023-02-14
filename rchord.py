@@ -1022,7 +1022,7 @@ class ReaperUtil:
             if all([chord_track, meta_track, midi_track]):
                 break
         if not midi_track:
-            chord_track = p.add_track(0, cls.ChordTrackMidi)
+            midi_track = p.add_track(0, cls.ChordTrackMidi)
         if not meta_track:
             meta_track = p.add_track(0, cls.ChordTrackMeta)
         if not chord_track:
