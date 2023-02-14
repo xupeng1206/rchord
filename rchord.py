@@ -1027,7 +1027,7 @@ class ReaperUtil:
             meta_track = p.add_track(0, cls.ChordTrackMeta)
         if not chord_track:
             chord_track = p.add_track(0, cls.ChordTrackName)
-        end_pos = p.cursor_position + p.beats_to_time(4)
+        end_pos = p.cursor_position + p.beats_to_time(int(p.time_signature[1]))
         chord_item = chord_track.add_item(
             start=p.cursor_position,
             end=end_pos,
@@ -1043,15 +1043,20 @@ class ReaperUtil:
         midi_item = midi_track.add_midi_item(
             start=p.cursor_position,
             end=end_pos,
-            quantize=True
         )
-        midi_take = midi_item.add_take()
+
+        midi_take = rpi.GetActiveTake(midi_item.id)
         for note in notes:
-            midi_take.add_note(
-                start=p.cursor_position,
-                end=end_pos,
-                pitch=note,
-                velocity=96
+            rpi.MIDI_InsertNote(
+                midi_take,
+                False,
+                False,
+                rpi.MIDI_GetPPQPosFromProjTime(midi_take, p.cursor_position),
+                rpi.MIDI_GetPPQPosFromProjTime(midi_take, end_pos),
+                0,
+                note,
+                96,
+                False
             )
 
         p.cursor_position = end_pos
