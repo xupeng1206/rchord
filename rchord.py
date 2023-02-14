@@ -603,10 +603,13 @@ class ChordDetailVoicing(Frame):
         chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         if GlobalState.chord_root != GlobalState.chord_bass:
             chord = chord + "/" + GlobalState.chord_bass
-        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}")
+
+        note_indexes = Theory.notes_to_notes_pitched([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))[1]
+        notes = [x + 36 + GlobalState.oct * 12 for x in note_indexes]
+        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}", notes)
         # todo play sound
         ReaperUtil.stop_play()
-        ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
+        ReaperUtil._play(notes)
 
 
 class Piano(Frame):
@@ -971,6 +974,7 @@ class App:
 class ReaperUtil:
     ChordTrackName = "__CHORD_TRACK__"
     ChordTrackMeta = "__CHORD_META__"
+    ChordTrackMidi = "__CHORD_MIDI__"
 
     @classmethod
     def parse_item(cls):
@@ -1003,17 +1007,22 @@ class ReaperUtil:
                 Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
 
     @classmethod
-    def insert_chord_item(cls, chord, meta):
+    def insert_chord_item(cls, chord, meta, notes):
         p = rpy.Project()
         chord_track = None
         meta_track = None
+        midi_track = None
         for t in p.tracks:
             if t.name == cls.ChordTrackName:
                 chord_track = t
             if t.name == cls.ChordTrackMeta:
                 meta_track = t
-            if all([chord_track, meta_track]):
+            if t.name == cls.ChordTrackMidi:
+                midi_track = t
+            if all([chord_track, meta_track, midi_track]):
                 break
+        if not midi_track:
+            chord_track = p.add_track(0, cls.ChordTrackMidi)
         if not meta_track:
             meta_track = p.add_track(0, cls.ChordTrackMeta)
         if not chord_track:
@@ -1030,6 +1039,21 @@ class ReaperUtil:
 
         rpi.ULT_SetMediaItemNote(chord_item.id, chord)
         rpi.ULT_SetMediaItemNote(meta_item.id, meta)
+
+        midi_item = midi_track.add_midi_item(
+            start=p.cursor_position,
+            end=end_pos,
+            quantize=True
+        )
+        midi_take = midi_item.add_take()
+        for note in notes:
+            midi_take.add_note(
+                start=p.cursor_position,
+                end=end_pos,
+                pitch=note,
+                velocity=96
+            )
+
         p.cursor_position = end_pos
 
     @classmethod
