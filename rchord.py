@@ -75,40 +75,40 @@ class Theory:
     }
 
     scale_map = {
-        "Natural Maj": {"pattern": "1,2,3,4,5,6,7", "zh": "", "en": "Natural Maj"},
-        "Harmonic Maj": {"pattern": "1,2,3,4,5,b6,7", "zh": "", "en": "Harmonic Maj"},
-        "Melodic Maj": {"pattern": "1,2,3,4,5,b6,b7", "zh": "", "en": "Melodic Maj"},
-        "Natural Min": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "", "en": "Natural Min"},
-        "Harmonic Min": {"pattern": "1,2,b3,4,5,b6,7", "zh": "", "en": "Harmonic Min"},
-        "Melodic Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "", "en": "Melodic Min"},
-        "Ionian": {"pattern": "1,2,3,4,5,6,7", "zh": "", "en": "Ionian"},
-        "Dorian": {"pattern": "1,2,b3,4,5,6,b7", "zh": "", "en": "Dorian"},
-        "Phrygian": {"pattern": "1,b2,b3,4,5,b6,b7", "zh": "", "en": "Phrygian"},
-        "Lydian": {"pattern": "1,2,3,#4,5,6,7", "zh": "", "en": "Lydian"},
-        "Mixolydian": {"pattern": "1,2,3,4,5,6,b7", "zh": "", "en": "Mixolydian"},
-        "Aeolian": {"pattern": "1,2,b3,4,5,b6,b7", "zh": "", "en": "Aeolian"},
-        "Locrian": {"pattern": "1,b2,b3,4,b5,b6,b7", "zh": "", "en": "Locrian"},
-        "Whole Half Dim": {"pattern": "1,2,b3,4,b5,b6,6,7", "zh": "", "en": "Whole Half Dim"},
-        "Half Whole Dim": {"pattern": "1,b2,b3,3,b5,5,6,b7", "zh": "", "en": "Half Whole Dim"},
-        "Diatonic": {"pattern": "1,2,3,#4,#5,#6", "zh": "", "en": "Diatonic"},
-        "Blues": {"pattern": "1,b3,4,b5,5,b7", "zh": "", "en": "Blues"},
-        "Mix Blues": {"pattern": "1,b3,3,4,b5,5,b7", "zh": "", "en": "Mix Blues"},
-        "Aux Blues": {"pattern": "1,2,b3,3,4,#4,5,6,b7", "zh": "", "en": "Aux Blues"},
-        "Jazz Min": {"pattern": "1,2,b3,4,5,6,7", "zh": "", "en": "Jazz Min"},
-        "Blues Maj": {"pattern": "1,2,b3,4,b5,b6,7", "zh": "", "en": "Blues Maj"},
-        "Phrygian Dominant": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "", "en": "Phrygian Dominant"},
-        "Lydian Dominant": {"pattern": "1,2,3,#4,5,6,b7", "zh": "", "en": "Lydian Dominant"},
-        "Super Locrian": {"pattern": "1,b2,b3,3,b5,b6,b7", "zh": "", "en": "Super Locrian"},
-        "Gypsy": {"pattern": "1,b3,#4,5,b6,b7", "zh": "", "en": "Gypsy"},
-        "Hungarian Maj": {"pattern": "1,#2,3,#4,5,6,b7", "zh": "", "en": "Hungarian Maj"},
-        "Hungarian Min": {"pattern": "1,2,b3,#4,5,b6,7", "zh": "", "en": "Hungarian Min"},
-        "Bibop": {"pattern": "1,2,3,4,5,6,b7,7", "zh": "", "en": "Bibop"},
-        "India": {"pattern": "1,2,3,4,5,b6,b7", "zh": "", "en": "India"},
-        "Jap": {"pattern": "1,3,4,6,7", "zh": "", "en": "Jap"},
-        "Russia": {"pattern": "1,b2,2,b3,4,5,b6,6,b7,7", "zh": "", "en": "Russia"},
-        "Arabian": {"pattern": "1,b2,3,4,5,b6,b7", "zh": "", "en": "Arabian"},
-        "Oriental": {"pattern": "1,b2,3,4,b5,6,b7", "zh": "", "en": "Oriental"},
-        "Spanish": {"pattern": "1,b2,b3,3,4,b5,b6,b7", "zh": "", "en": "Spanish"},
+        "Natural Maj": "1,2,3,4,5,6,7",
+        "Harmonic Maj": "1,2,3,4,5,b6,7",
+        "Melodic Maj": "1,2,3,4,5,b6,b7",
+        "Natural Min": "1,2,b3,4,5,b6,b7",
+        "Harmonic Min": "1,2,b3,4,5,b6,7",
+        "Melodic Min": "1,2,b3,4,5,6,7",
+        "Ionian": "1,2,3,4,5,6,7",
+        "Dorian": "1,2,b3,4,5,6,b7",
+        "Phrygian": "1,b2,b3,4,5,b6,b7",
+        "Lydian": "1,2,3,#4,5,6,7",
+        "Mixolydian": "1,2,3,4,5,6,b7",
+        "Aeolian": "1,2,b3,4,5,b6,b7",
+        "Locrian": "1,b2,b3,4,b5,b6,b7",
+        "Whole Half Dim": "1,2,b3,4,b5,b6,6,7",
+        "Half Whole Dim": "1,b2,b3,3,b5,5,6,b7",
+        "Diatonic": "1,2,3,#4,#5,#6",
+        "Blues": "1,b3,4,b5,5,b7",
+        "Mix Blues": "1,b3,3,4,b5,5,b7",
+        "Aux Blues": "1,2,b3,3,4,#4,5,6,b7",
+        "Jazz Min": "1,2,b3,4,5,6,7",
+        "Blues Maj": "1,2,b3,4,b5,b6,7",
+        "Phrygian Dominant": "1,b2,3,4,5,b6,b7",
+        "Lydian Dominant": "1,2,3,#4,5,6,b7",
+        "Super Locrian": "1,b2,b3,3,b5,b6,b7",
+        "Gypsy": "1,b3,#4,5,b6,b7",
+        "Hungarian Maj": "1,#2,3,#4,5,6,b7",
+        "Hungarian Min": "1,2,b3,#4,5,b6,7",
+        "Bibop": "1,2,3,4,5,6,b7,7",
+        "India": "1,2,3,4,5,b6,b7",
+        "Jap": "1,3,4,6,7",
+        "Russia": "1,b2,2,b3,4,5,b6,6,b7,7",
+        "Arabian": "1,b2,3,4,5,b6,b7",
+        "Oriental": "1,b2,3,4,b5,6,b7",
+        "Spanish": "1,b2,b3,3,4,b5,b6,b7",
     }
 
     @classmethod
@@ -126,12 +126,6 @@ class Theory:
             note_pitched = "/".join([x + str(pitch) for x in note.split("/")])
             notes_pitched.append(note_pitched)
         return notes_pitched, note_indexes
-
-    @classmethod
-    def find_scale_tag_by_scale_name(cls, name, lan="en"):
-        for k, v in cls.scale_map.items():
-            if v[lan] == name:
-                return k
 
     @classmethod
     def make_chord(cls, chord_name):
@@ -154,7 +148,7 @@ class Theory:
         root, tag = scale_name.split("/")
         if tag not in cls.scale_map:
             raise Exception("scale not support.")
-        return cls.parse(root, cls.scale_map[tag]["pattern"])
+        return cls.parse(root, cls.scale_map[tag])
 
     @classmethod
     def chord_in_scale(cls, chord_name, scale_name):
@@ -595,11 +589,9 @@ class ChordDetailVoicing(Frame):
         ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
     def stop_btn_left_click(self, event):
-        # todo play sound
         ReaperUtil.stop_play_all()
 
     def insert_btn_left_click(self, event):
-        # todo insert item to daw
         chord = GlobalState.chord_pattern.replace("X", GlobalState.chord_root)
         if GlobalState.chord_root != GlobalState.chord_bass:
             chord = chord + "/" + GlobalState.chord_bass
@@ -607,7 +599,6 @@ class ChordDetailVoicing(Frame):
         note_indexes = Theory.notes_to_notes_pitched([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))[1]
         notes = [x + 36 + GlobalState.oct * 12 for x in note_indexes]
         ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}", notes)
-        # todo play sound
         ReaperUtil.stop_play()
         ReaperUtil._play(notes)
 
@@ -744,7 +735,7 @@ class StateInfoUi(Frame):
 
     def refresh(self):
         label_context = "Pattern: "
-        self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern]["pattern"])
+        self.scale_pattern_label.configure(text=label_context + Theory.scale_map[GlobalState.scale_pattern])
 
         label_context = "Notes: "
         notes = GlobalState.scale_notes
@@ -829,7 +820,6 @@ class ChordDetailAuxScales(Frame):
         scales = Theory.find_scales_by_chord(chord)
         for idx, scale in enumerate(scales):
             note, tag = scale.split("/")
-            # self.aux_scale_list.insert(idx, f"{note} | {Theory.scale_map[tag][GlobalSetting.lan]}")
             self.aux_scale_list.insert(idx, f"{note} | {tag}")
 
     def aux_scale_list_select(self, event):
@@ -843,7 +833,6 @@ class ChordDetailAuxScales(Frame):
             return
         note, scale = aux_scale.split("|")
         note = note.strip()
-        # scale = Theory.find_scale_tag_by_scale_name(scale.strip(), GlobalSetting.lan)
         scale = scale.strip()
         notes = Theory.make_scale(f"{note}/{scale}")[0]
         GlobalState.play_aux_piano(notes)
@@ -1036,7 +1025,7 @@ class ReaperUtil:
             start=p.cursor_position,
             end=end_pos,
         )
-
+        meta = meta + "/" + ",".join([str(i) for i in notes])
         rpi.ULT_SetMediaItemNote(chord_item.id, chord)
         rpi.ULT_SetMediaItemNote(meta_item.id, meta)
 
