@@ -238,6 +238,50 @@ class Theory:
             ret_single_notes.append(ret_note)
         return ret_single_notes, ret_multi_notes
 
+    @classmethod
+    def scale_trans(cls, note, diff):
+        note = cls.note_lst_x4[cls.note_index(cls.note_lst_x4[12:], note) + 12 + diff]
+        return note.split("/")[0]
+
+    @classmethod
+    def chord_trans(cls, chord, diff, nice_notes):
+        chord_pattern = chord.split('/')[0]
+        chord_bass = chord.split('/')[0]
+        if "/" in chord:
+            chord_bass = chord.split('/')[1]
+        new_bass = cls.note_lst_x4[cls.note_index(cls.note_lst_x4[12:], chord_bass) + 12 + diff]
+        if "/" in new_bass:
+            for n in new_bass.split("/"):
+                if n in nice_notes:
+                    new_bass = n
+        if "/" in new_bass:
+            new_bass = new_bass.split("/")[0]
+        if len(chord_pattern) >= 2 and chord_pattern[1] in "b#":
+            root = chord_pattern[:2]
+            new_root = cls.note_lst_x4[cls.note_index(cls.note_lst_x4[12:], root) + 12 + diff]
+            if "/" in new_root:
+                for n in new_root.split("/"):
+                    if n in nice_notes:
+                        new_root = n
+            if "/" in new_root:
+                new_root = new_root.split("/")[0]
+
+            chord_tag = chord_pattern[2:]
+        else:
+            root = chord_pattern[0]
+            chord_tag = chord_pattern[1:]
+            new_root = cls.note_lst_x4[cls.note_index(cls.note_lst_x4[12:], root) + 12 + diff]
+            if "/" in new_root:
+                for n in new_root.split("/"):
+                    if n in nice_notes:
+                        new_root = n
+            if "/" in new_root:
+                new_root = new_root.split("/")[0]
+        if new_bass == new_root:
+            return f"{new_root}{chord_tag}"
+        else:
+            return f"{new_root}{chord_tag}/{new_bass}"
+
 
 class GlobalStateClz:
     _scale_root = "C"
@@ -247,7 +291,7 @@ class GlobalStateClz:
     _chord_pattern = "X"
     _chord_bass = "C"
     _chord_default_voicing = "C,E,G"
-    _chord_voicing = "C,E,G"
+    _chord_voicing = "0,1,2"
     _analyse_chord = ""
     _oct = 0
 
@@ -326,16 +370,22 @@ class GlobalStateClz:
 
     @property
     def chord_voicing(self):
-        return self._chord_voicing
+        ret = []
+        for i in self._chord_voicing.split(","):
+            ret.append(self._chord_default_voicing.split(",")[int(i)])
+        return ",".join(ret)
 
     @chord_voicing.setter
     def chord_voicing(self, value):
         refresh = False
-        if value != self._chord_pattern:
+        if value != self.chord_voicing:
             refresh = True
-        self._chord_voicing = value
+        ret = []
+        for note in value.split(','):
+            ret.append(str(self._chord_default_voicing.split(',').index(note)))
+        self._chord_voicing = ','.join(ret)
         if refresh:
-            app.chord_selector.main_piano.play([self._chord_bass] + self._chord_voicing.split(','))
+            app.chord_selector.main_piano.play([self._chord_bass] + self.chord_voicing.split(','))
 
     @property
     def chord_default_voicing(self):
@@ -386,8 +436,9 @@ class GlobalStateClz:
     def _chord_change(self):
         chord = self._chord_pattern.replace("X", self._chord_root)
         notes = Theory.make_chord(chord)[0]
-        self._chord_voicing = ",".join(notes)
         self._chord_default_voicing = ",".join(notes)
+        idx = list(range(0, len(notes)))
+        self._chord_voicing = ",".join([str(x) for x in idx])
 
     def _scale_change(self):
         notes = Theory.make_scale(f"{self._scale_root}/{self._scale_pattern}")[0]
@@ -416,15 +467,18 @@ class ChordRootNoteList(Frame):
 
     def refresh(self):
         scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
-        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[1]
+        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0]
         note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"root_note_{i}")
             btn.configure(bg="white", fg="black")
             note = note_list[i]
-            if note in nice_notes:
-                btn.configure(bg="pink", fg="black")
-            note = note.split("/")[0]
+            for n in note.split("/"):
+                if n in nice_notes:
+                    btn.configure(bg="pink", fg="black")
+                    note = n
+            if "/" in note:
+                note = note.split("/")[0]
             if note == GlobalState.chord_root:
                 btn.configure(bg="blue", fg="white")
             btn.configure(text=note)
@@ -434,7 +488,6 @@ class ChordRootNoteList(Frame):
         note = event.widget.r_get_text()
         GlobalState.chord_root = note
         GlobalState.chord_bass = note
-        # todo play sound
         ReaperUtil.stop_play()
         ReaperUtil.play([GlobalState.chord_root])
 
@@ -455,15 +508,19 @@ class ChordBaseNoteList(Frame):
 
     def refresh(self):
         scale_root_index = Theory.note_index(Theory.note_lst_x4, GlobalState.scale_root)
-        nice_notes = Theory.make_chord(GlobalState.chord_pattern.replace("X", GlobalState.chord_root))[1]
+        nice_notes = Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0]
         note_list = Theory.note_lst_x4[scale_root_index:scale_root_index + 12]
         for i in range(12):
             btn = getattr(self, f"bass_note_{i}")
             note = note_list[i]
             btn.configure(bg="white", fg="black")
-            if note in nice_notes:
-                btn.configure(bg="pink", fg="black")
-            note = note.split("/")[0]
+            note = note_list[i]
+            for n in note.split("/"):
+                if n in nice_notes:
+                    btn.configure(bg="pink", fg="black")
+                    note = n
+            if "/" in note:
+                note = note.split("/")[0]
             if note == GlobalState.chord_bass:
                 btn.configure(bg="blue", fg="white")
             btn.configure(text=note)
@@ -472,7 +529,6 @@ class ChordBaseNoteList(Frame):
     def left_click(self, event):
         note = event.widget.r_get_text()
         GlobalState.chord_bass = note
-        # todo play sound
         ReaperUtil.stop_play()
         ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
@@ -518,7 +574,6 @@ class ChordGrid(Frame):
     def left_click(self, event):
         text = event.widget.r_get_text()
         GlobalState.chord_pattern = text.replace(GlobalState.chord_root, "X")
-        # todo play sound
         ReaperUtil.stop_play()
         ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
@@ -584,7 +639,6 @@ class ChordDetailVoicing(Frame):
             self.voicing_entry.insert(0, GlobalState.chord_voicing)
         else:
             GlobalState.chord_voicing = voicing
-        # todo play sound
         ReaperUtil.stop_play()
         ReaperUtil.play([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))
 
@@ -598,7 +652,7 @@ class ChordDetailVoicing(Frame):
 
         note_indexes = Theory.notes_to_notes_pitched([GlobalState.chord_bass] + GlobalState.chord_voicing.split(','))[1]
         notes = [x + 36 + GlobalState.oct * 12 for x in note_indexes]
-        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState.chord_voicing}", notes)
+        ReaperUtil.insert_chord_item(chord, f"{GlobalState.scale_root}/{GlobalState.scale_pattern}/{GlobalState._chord_voicing}/{GlobalState.oct}", notes)
         ReaperUtil.stop_play()
         ReaperUtil._play(notes)
 
@@ -836,7 +890,6 @@ class ChordDetailAuxScales(Frame):
         scale = scale.strip()
         notes = Theory.make_scale(f"{note}/{scale}")[0]
         GlobalState.play_aux_piano(notes)
-        # todo play sound (not support)
 
 
 class ChordDetailAuxChords(Frame):
@@ -867,7 +920,6 @@ class ChordDetailAuxChords(Frame):
             pass
         if aux_chord is None:
             return
-        # todo play sound
         notes = Theory.make_chord(aux_chord)[0]
         GlobalState.play_aux_piano(notes)
         ReaperUtil.stop_play()
@@ -893,7 +945,6 @@ class ChordAnalyserTop(Frame):
         GlobalState.analyse_chord = self.chord.get()
 
     def stop_click(self, event):
-        # todo play sound
         ReaperUtil.stop_play_all()
 
 
@@ -977,9 +1028,10 @@ class ReaperUtil:
             GlobalState._scale_root = meta.split("/")[0]
             GlobalState._scale_pattern = meta.split("/")[1]
             GlobalState._chord_voicing = meta.split("/")[2]
+            GlobalState._oct = int(meta.split("/")[3])
             chord_notes = Theory.make_chord(chord)[0]
             GlobalState._chord_root = chord_notes[0]
-            GlobalState._chord_default_voicing = chord_notes
+            GlobalState._chord_default_voicing = ",".join(chord_notes)
             GlobalState._chord_pattern = chord.replace(GlobalState._chord_root, "X")
             GlobalState._scale_notes = ",".join(
                 Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
@@ -987,10 +1039,11 @@ class ReaperUtil:
             GlobalState._scale_root = meta.split("/")[0]
             GlobalState._scale_pattern = meta.split("/")[1]
             GlobalState._chord_voicing = meta.split("/")[2]
+            GlobalState._oct = int(meta.split("/")[3])
             chord_notes = Theory.make_chord(chord)[0]
             GlobalState._chord_root = chord_notes[0]
             GlobalState._chord_bass = chord_notes[0]
-            GlobalState._chord_default_voicing = chord_notes
+            GlobalState._chord_default_voicing = ",".join(chord_notes)
             GlobalState._chord_pattern = chord.replace(GlobalState._chord_root, "X")
             GlobalState._scale_notes = ",".join(
                 Theory.make_scale(f"{GlobalState.scale_root}/{GlobalState.scale_pattern}")[0])
